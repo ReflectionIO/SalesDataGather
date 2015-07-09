@@ -8,6 +8,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
+@EnableScheduling
 public class SalesDataGatherApplication {
 	private transient static final Logger	LOG	= LoggerFactory.getLogger(SalesDataGatherApplication.class.getName());
 
