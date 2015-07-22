@@ -1,10 +1,17 @@
 package io.reflection.salesdatagather;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.stereotype.Component;
+import java.util.concurrent.ThreadPoolExecutor;
 
-@Component
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.jackson2.JacksonFactory;
+
+@Configuration
 @PropertySource("classpath:/application.properties")
 public class AppConfig {
 
@@ -14,11 +21,91 @@ public class AppConfig {
 	@Value("${profile}")
 	private String	profile;
 
+	@Value("${google.project.name}")
+	private String	googleProjectName;
+
+	@Value("${google.auth.p12key.path}")
+	private String	googleAuthCertPath;
+
+	@Value("${google.auth.email}")
+	private String	googleAuthEmail;
+
+	@Value("${google.tasks.queue.name}")
+	private String	tasksQueueName;
+
+	@Value("${temp.download.dir}")
+	private String tempDownloadDirectory;
+
+	@Value("${temp.download.prefix}")
+	private String tempDownloadPrefix;
+
+	@Value("${google.tasls.leaseTime}")
+	private Integer	taskLeaseTime;
+
+
+
 	public String getVersion() {
 		return version;
 	}
 
 	public String getProfile() {
 		return profile;
+	}
+
+	@Bean
+	public JsonFactory getJsonFactory() {
+		return JacksonFactory.getDefaultInstance();
+	}
+
+	@Bean
+	public ThreadPoolTaskExecutor taskExecutor() {
+		ThreadPoolTaskExecutor pool = new ThreadPoolTaskExecutor();
+
+		/*
+		 * This make sure then when adding a task to be executed, once the queue is full, the current thread itself runs the task.
+		 * This means that the task adding mechanism slows down and becomes the last thread of the pool. When it is free again, it
+		 * can begin loading back into the queue
+		 */
+		pool.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+
+		/*
+		 * At a time just allow 6 tasks in the queue. This means that it will take double the time of a gather to clear the queue.
+		 * We don't want to keep too many tasks to be borrowed/leased. We will lease as we execute.
+		 */
+		pool.setQueueCapacity(6);
+		pool.setWaitForTasksToCompleteOnShutdown(true);
+		pool.setCorePoolSize(1); //Keep just one thread ready for processing tasks. This will go up to maxPoolSize thread as more tasks are added
+		pool.setMaxPoolSize(6); //only 6 tasks can be run at a time (the schedulling thread becomes the 7th leaving 1 spare for the OS)
+		pool.setWaitForTasksToCompleteOnShutdown(true);
+
+		return pool;
+	}
+
+	public String getGoogleAuthCertificatePath() {
+		return googleAuthCertPath;
+	}
+
+	public String getGoogleProjectName() {
+		return googleProjectName;
+	}
+
+	public String getGoogleAuthEmail() {
+		return googleAuthEmail;
+	}
+
+	public String getTasksQueueName() {
+		return tasksQueueName;
+	}
+
+	public String getDownloadDirPrefix() {
+		return tempDownloadPrefix;
+	}
+
+	public String getTempDownloadDir() {
+		return tempDownloadDirectory;
+	}
+
+	public Integer getTaskLeaseTime() {
+		return taskLeaseTime;
 	}
 }

@@ -20,5 +20,7 @@ public class SalesDataGatherApplication {
 			LOG.info(String.format("\n\nSales Data Gather App started. Verions: %s under profile: %s\n"
 					+ "=================================================================================\n\n", appConfig.getVersion(), appConfig.getProfile()));
 		}
+
+		context.getBean(NicksHelper.class).run();
 	}
 }

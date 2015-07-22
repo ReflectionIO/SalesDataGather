@@ -9,3 +9,5 @@ buildNumber.properties
 /.classpath
 /.project
 /prod - salesdatagather.launch
+/reflection-dev-8890eb2e153b.p12
+/*.log
