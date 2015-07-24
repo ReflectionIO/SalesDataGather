@@ -1,11 +1,5 @@
 package io.reflection.salesdatagather.services;
 
-import io.reflection.salesdatagather.SalesDataGatherApplication;
-import io.reflection.salesdatagather.model.DataAccount;
-import io.reflection.salesdatagather.model.enums.ITunesPlatform;
-import io.reflection.salesdatagather.model.nondb.CsvRevenueAndDownloadEntry;
-import io.reflection.salesdatagather.model.repositories.SaleSummaryRepo;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -14,6 +8,7 @@ import java.util.Date;
 import java.util.HashMap;
 
 import org.apache.commons.collections.ComparatorUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -22,6 +17,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+
+import io.reflection.salesdatagather.SalesDataGatherApplication;
+import io.reflection.salesdatagather.model.DataAccount;
+import io.reflection.salesdatagather.model.enums.ITunesPlatform;
+import io.reflection.salesdatagather.model.nondb.CsvRevenueAndDownloadEntry;
+import io.reflection.salesdatagather.model.repositories.SaleSummaryRepo;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = SalesDataGatherApplication.class)
@@ -33,7 +34,7 @@ public class SalesDataProcessorTest {
 	private SaleSummaryRepo saleSummaryRepo;
 
 	@Test
-	//	@Ignore // to enable this test, the sample test directory needs to be present. We need to get a sample file and move it into the test resources dir
+	@Ignore // to enable this test, the sample test directory needs to be present. We need to get a sample file and move it into the test resources dir
 	public void convertSalesAndDownloadsCSVTest() {
 		Path downloadDir = Paths.get("/tmp/ff/259-461402734-gb-2015-06-01-2015-06-30-2757180851312207524");
 		Path downloadsFile = downloadDir.resolve("downloads.csv");
@@ -60,7 +61,7 @@ public class SalesDataProcessorTest {
 			DataAccount account = new DataAccount();
 			account.setId(259);
 
-			saleSummaryRepo.updateSalesSummaries(account, "gb", "461402734", "Diamond Dash", salesAndDownloadsMap);
+			//			saleSummaryRepo.updateSalesSummaries(account, "gb", "461402734", "Diamond Dash", salesAndDownloadsMap);
 		}
 	}
 }

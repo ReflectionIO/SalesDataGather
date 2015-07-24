@@ -39,10 +39,14 @@ public class AppConfig {
 	@Value("${temp.download.prefix}")
 	private String tempDownloadPrefix;
 
-	@Value("${google.tasls.leaseTime}")
-	private Integer	taskLeaseTime;
+	@Value("${google.tasks.leaseTimeSeconds}")
+	private Integer	taskLeaseTimeSeconds;
 
+	@Value("${google.storage.filePrefix}")
+	private String googleStorageFilePrefix;
 
+	@Value("${google.storage.bucketName}")
+	private String googleStorageBucketName;
 
 	public String getVersion() {
 		return version;
@@ -105,7 +109,15 @@ public class AppConfig {
 		return tempDownloadDirectory;
 	}
 
-	public Integer getTaskLeaseTime() {
-		return taskLeaseTime;
+	public Integer getTaskLeaseTimeSeconds() {
+		return taskLeaseTimeSeconds;
+	}
+
+	public String getGoogleStorageFilePrefix() {
+		return googleStorageFilePrefix;
+	}
+
+	public String getGoogleStorageBucketName() {
+		return googleStorageBucketName;
 	}
 }

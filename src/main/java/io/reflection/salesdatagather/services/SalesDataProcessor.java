@@ -1,8 +1,5 @@
 package io.reflection.salesdatagather.services;
 
-import io.reflection.salesdatagather.model.enums.ITunesPlatform;
-import io.reflection.salesdatagather.model.nondb.CsvRevenueAndDownloadEntry;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -22,6 +19,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import au.com.bytecode.opencsv.CSVReader;
+import io.reflection.salesdatagather.model.enums.ITunesPlatform;
+import io.reflection.salesdatagather.model.nondb.CsvRevenueAndDownloadEntry;
 
 @Service
 public class SalesDataProcessor {
@@ -29,9 +28,7 @@ public class SalesDataProcessor {
 
 	public HashMap<Date, CsvRevenueAndDownloadEntry> convertSalesAndDownloadsCSV(Path salesFile, Path downloadsFile, Path iapSalesFile){
 
-		LOG.debug(String.format("Sales file: %s, downloads: %s", salesFile, downloadsFile));
-
-
+		LOG.debug(String.format("Sales file: %s, downloads: %s, iapSalesFile: %s", salesFile, downloadsFile, iapSalesFile));
 
 		HashMap<Date, CsvRevenueAndDownloadEntry> map = getMapOfDatesFromFirstAvailableFile(salesFile, downloadsFile, iapSalesFile);
 		if(map==null) {

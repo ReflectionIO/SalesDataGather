@@ -2,8 +2,8 @@ package io.reflection.salesdatagather.model.repositories;
 
 import io.reflection.salesdatagather.SalesDataGatherApplication;
 import io.reflection.salesdatagather.model.DataAccount;
+import io.reflection.salesdatagather.model.nondb.GatherTask;
 import io.reflection.salesdatagather.services.GatherTaskService;
-import io.reflection.salesdatagather.tasks.GatherTask;
 
 import java.util.Calendar;
 import java.util.Date;

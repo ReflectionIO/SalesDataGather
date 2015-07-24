@@ -22,6 +22,7 @@
 		<java.version>1.8</java.version>
 		<google.client.api.version>1.20.0</google.client.api.version>
 		<google.client.api.taskqueue.version>v1beta2-rev38-1.20.0</google.client.api.taskqueue.version>
+		<google.client.api.storage.version>v1-rev38-1.20.0</google.client.api.storage.version>
 	</properties>
 
 	<dependencies>
@@ -79,6 +80,12 @@
 		</dependency>
 
 		<dependency>
+			<groupId>com.google.apis</groupId>
+			<artifactId>google-api-services-storage</artifactId>
+			<version>${google.client.api.storage.version}</version>
+		</dependency>
+
+		<dependency>
 			<groupId>org.seleniumhq.selenium</groupId>
 			<artifactId>selenium-java</artifactId>
 			<version>2.45.0</version>
@@ -99,6 +106,10 @@
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 			<version>2.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>activemq-client</artifactId>
 		</dependency>
 	</dependencies>
 

@@ -3,7 +3,7 @@ package io.reflection.salesdatagather.services;
 //import static org.junit.Assert.*;
 import io.reflection.salesdatagather.SalesDataGatherApplication;
 import io.reflection.salesdatagather.model.DataAccount;
-import io.reflection.salesdatagather.tasks.GatherTask;
+import io.reflection.salesdatagather.model.nondb.GatherTask;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

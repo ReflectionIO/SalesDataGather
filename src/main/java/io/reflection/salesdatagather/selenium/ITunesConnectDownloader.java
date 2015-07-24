@@ -21,7 +21,16 @@ public class ITunesConnectDownloader {
 	@Autowired
 	private ITunesHelper helper;
 
-	public void downloadFromITunes(FirefoxDriver driver, Path downloadDir, String username, String password, String mainItemId, String IAPIds, String countryCodeToGatherFor, Date dateToGatherFrom, Date dateToGatherTo) {
+	public void downloadFromITunes(Path downloadDir, String username, String password, String mainItemId, String IAPIds, String countryCodeToGatherFor, Date dateToGatherFrom, Date dateToGatherTo) {
+		FirefoxDriver driver = new SeleniumDriver(downloadDir).getDriver();
+		try{
+			downloadFromITunes(driver, downloadDir, username, password, mainItemId, IAPIds, countryCodeToGatherFor, dateToGatherFrom, dateToGatherTo);
+		}catch(Exception e){
+			driver.quit();
+		}
+	}
+
+	private void downloadFromITunes(FirefoxDriver driver, Path downloadDir, String username, String password, String mainItemId, String IAPIds, String countryCodeToGatherFor, Date dateToGatherFrom, Date dateToGatherTo) {
 		LOG.debug("Logging into ITunes");
 		SeleniumHelper.loginToItunes(driver, username, password);
 

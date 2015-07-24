@@ -1,7 +1,6 @@
 package io.reflection.salesdatagather.tasks;
 
 import static org.junit.Assert.*;
-import io.reflection.salesdatagather.SalesDataGatherApplication;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -13,17 +12,24 @@ import org.springframework.test.context.web.WebAppConfiguration;
 
 import com.google.api.client.auth.oauth2.Credential;
 
+import io.reflection.salesdatagather.SalesDataGatherApplication;
+import io.reflection.salesdatagather.services.GoogleAuthService;
+import io.reflection.salesdatagather.services.TaskService;
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = SalesDataGatherApplication.class)
 @WebAppConfiguration
 public class TaskServiceTests {
+	@Autowired
+	private GoogleAuthService authService;
+
 	@Autowired
 	private TaskService	taskService;
 
 	@Test
 	@Ignore
 	public void googleTaskQueueAuthorisation() {
-		Credential credentials = taskService.authorise();
+		Credential credentials = authService.authorise();
 		assertNotNull("Could not autorize the task queue service ", credentials);
 	}
 
