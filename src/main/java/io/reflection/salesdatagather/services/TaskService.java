@@ -85,6 +85,11 @@ public class TaskService {
 			return null;
 		}
 
+		if (tasks == null || tasks.getItems() == null) {
+			LOG.debug("Tasks request returned nothing");
+			return null;
+		}
+
 		LOG.debug(String.format("Got %d tasks in the queue", tasks.getItems().size()));
 
 		if (tasks == null || tasks.getItems() == null || tasks.getItems().size() == 0) return null;
@@ -97,6 +102,7 @@ public class TaskService {
 
 		return task;
 	}
+
 	private Map<String, String> getParametersFromPayload(String payloadBase64) {
 		final Map<String, String> mappedParams = new HashMap<String, String>();
 
@@ -109,6 +115,11 @@ public class TaskService {
 			String[] subParts = null;
 			for (final String part : parts) {
 				subParts = part.split("=");
+
+				if (subParts.length == 1) {
+					continue;
+				}
+
 				mappedParams.put(subParts[0], subParts[1]);
 			}
 		}

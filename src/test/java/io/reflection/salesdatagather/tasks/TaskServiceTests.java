@@ -4,22 +4,15 @@ import static org.junit.Assert.*;
 
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
 
 import com.google.api.client.auth.oauth2.Credential;
 
-import io.reflection.salesdatagather.SalesDataGatherApplication;
+import io.reflection.salesdatagather.BaseSpringTestClass;
 import io.reflection.salesdatagather.services.GoogleAuthService;
 import io.reflection.salesdatagather.services.TaskService;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = SalesDataGatherApplication.class)
-@WebAppConfiguration
-public class TaskServiceTests {
+public class TaskServiceTests extends BaseSpringTestClass{
 	@Autowired
 	private GoogleAuthService authService;
 

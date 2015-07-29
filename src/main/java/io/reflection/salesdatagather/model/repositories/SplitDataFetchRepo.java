@@ -3,11 +3,13 @@ package io.reflection.salesdatagather.model.repositories;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.Date;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
@@ -21,19 +23,20 @@ import io.reflection.salesdatagather.model.enums.SplitDataFetchStatus;
 public class SplitDataFetchRepo {
 	private transient static final Logger LOG = LoggerFactory.getLogger(SplitDataFetchRepo.class.getName());
 
-	private final JdbcTemplate	jdbcTemplate;
+	private final JdbcTemplate jdbcTemplate;
 
+	@Autowired(required = true)
 	public SplitDataFetchRepo(JdbcTemplate jdbcTemplate) {
 		this.jdbcTemplate = jdbcTemplate;
 	}
 
-	public SplitDataFetch createSplitDataFetch(Integer dataAccountId, String itemId, Date gatheredFrom, Date gatheredTo, String country){
+	public SplitDataFetch createSplitDataFetch(final Integer dataAccountId, final String itemId, final Date gatheredFrom, final Date gatheredTo, final String country) {
 		LOG.trace(
 				String.format("Inserting new SplitDateFetch. DataAcc:%d, Item:%s, from:%s, to:%s, country: %s",
 						dataAccountId, itemId, gatheredFrom, gatheredTo, country));
 
 		String updateSql = "INSERT INTO "
-				+ " split_data_fetch (data_account_id, fetch_date, fetch_time, country, itemid, status, fromDate, toDate)"
+				+ " split_data_fetch (data_account_id, fetch_date, fetch_time, country, itemid, status, from_date, to_date)"
 				+ " VALUES ( ?, ?, ?, ?,    ?, ?, ?, ? )";
 
 		GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
@@ -41,7 +44,7 @@ public class SplitDataFetchRepo {
 
 			@Override
 			public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
-				PreparedStatement ps = con.prepareStatement(updateSql);
+				PreparedStatement ps = con.prepareStatement(updateSql, Statement.RETURN_GENERATED_KEYS);
 
 				int paramCount = 1;
 				ps.setInt(paramCount++, dataAccountId);
@@ -57,7 +60,7 @@ public class SplitDataFetchRepo {
 			}
 		}, keyHolder);
 
-		if(rowsInserted==0) return null;
+		if (rowsInserted == 0) return null;
 
 		Integer key = keyHolder.getKey().intValue();
 
@@ -65,13 +68,22 @@ public class SplitDataFetchRepo {
 	}
 
 	private SplitDataFetch getSplitDataFetchById(Integer key) {
-		return jdbcTemplate.queryForObject("select * from split_data_fetch where split_data_fetch_id=?", new Object[]{key}, BeanPropertyRowMapper.newInstance(SplitDataFetch.class));
+		return jdbcTemplate.queryForObject("select * from split_data_fetch where split_data_fetch_id=?", new Object[] { key }, BeanPropertyRowMapper.newInstance(SplitDataFetch.class));
 	}
 
 	public SplitDataFetch findBy(Integer dataAccountId, Date dateToGatherFrom, Date dateToGatherTo, String countryCodeToGatherFor, String itemId) {
-		String selectSql = "SELECT * from split_data_fetch where data_account_id=? and from_date<=? and to_date>=? and country=? and item_id=? LIMIT 1";
+		String selectSql = "SELECT * from split_data_fetch where data_account_id=? and from_date<=? and to_date>=? and country=? and itemid=? LIMIT 1";
 
-		return jdbcTemplate.queryForObject(selectSql, new Object[]{dataAccountId, dateToGatherFrom, dateToGatherTo, countryCodeToGatherFor, itemId}, BeanPropertyRowMapper.newInstance(SplitDataFetch.class));
+		SplitDataFetch splitDataFetch = null;
+
+		try {
+			splitDataFetch = jdbcTemplate.queryForObject(selectSql, new Object[] { dataAccountId, dateToGatherFrom, dateToGatherTo, countryCodeToGatherFor, itemId },
+					BeanPropertyRowMapper.newInstance(SplitDataFetch.class));
+		} catch (Exception e) {
+			LOG.debug("Could not get split data fetch based on the query. Error Message: " + e.getMessage());
+		}
+
+		return splitDataFetch;
 	}
 
 	public void updateSplitDataFetch(SplitDataFetch splitDataFetch) {
@@ -95,7 +107,7 @@ public class SplitDataFetchRepo {
 				+ "  ?, ?, ? "
 				+ " ) where split_data_fetch_id = ?";
 
-		jdbcTemplate.update(updateSql, new Object[]{
+		jdbcTemplate.update(updateSql, new Object[] {
 				splitDataFetch.getDataAccountId(),
 				splitDataFetch.getFetchedOn(), new Timestamp(splitDataFetch.getFetchedOn().getTime()),
 				splitDataFetch.getFromDate(), splitDataFetch.getToDate(),

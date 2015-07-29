@@ -10,7 +10,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @EnableScheduling
 public class SalesDataGatherApplication {
-	private transient static final Logger	LOG	= LoggerFactory.getLogger(SalesDataGatherApplication.class.getName());
+	private transient static final Logger LOG = LoggerFactory.getLogger(SalesDataGatherApplication.class.getName());
 
 	public static void main(String[] args) {
 		ConfigurableApplicationContext context = SpringApplication.run(SalesDataGatherApplication.class, args);
@@ -21,6 +21,6 @@ public class SalesDataGatherApplication {
 					+ "=================================================================================\n\n", appConfig.getVersion(), appConfig.getProfile()));
 		}
 
-		context.getBean(NicksHelper.class).run();
+		// context.getBean(NicksHelper.class).run();
 	}
 }

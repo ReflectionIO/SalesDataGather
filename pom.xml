@@ -111,13 +111,129 @@
 			<groupId>org.apache.activemq</groupId>
 			<artifactId>activemq-client</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>
 		<plugins>
+			<!--
+				This plugin copies over files from the main resources and for-deployment directories over to the target/deploy directory.
+				While coping files over, it performs filtering only on .properties, .sh and .xml files.
+			 -->
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-resources-for-deployment</id>
+						<phase>process-classes</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/deploy</outputDirectory>
+							<encoding>UTF-8</encoding>
+							<resources>
+								<resource>
+									<directory>src/main/for-deployment</directory>
+									<filtering>true</filtering>
+									<includes>
+										<include>**/*.properties</include>
+										<include>**/*.sh</include>
+										<include>**/*.xml</include>
+									</includes>
+								</resource>
+								<resource>
+									<directory>src/main/for-deployment</directory>
+									<filtering>false</filtering>
+									<excludes>
+										<exclude>**/*.properties</exclude>
+										<exclude>**/*.sh</exclude>
+										<exclude>**/*.xml</exclude>
+									</excludes>
+								</resource>
+								<resource>
+									<directory>src/main/resources</directory>
+									<filtering>true</filtering>
+									<includes>
+										<include>**/*.properties</include>
+										<include>**/*.sh</include>
+										<include>**/*.xml</include>
+									</includes>
+								</resource>
+								<resource>
+									<directory>src/main/resources</directory>
+									<filtering>false</filtering>
+									<excludes>
+										<exclude>**/*.properties</exclude>
+										<exclude>**/*.sh</exclude>
+										<exclude>**/*.xml</exclude>
+									</excludes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!--
+				Spring boot by default creates a FAT jar with all dependencies in it.
+				This is normally good but a pain when rsyncing updates frequently to a server.
+				So we disable it.
+			-->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- We want to copy all our dependencies to the deploy/lib folder so we can easily rsync it to the server -->
+			<plugin>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/deploy/lib</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<!--
+				We create a jar which includes a class path entry for all our dependencies which will be placed in the lib dir next to the jar.
+				Also we want to set the main class so the jar is runnable via java -jar jarname.
+				We also add an extra class-path entry for '.' This is very important as it add the current directly to the class path.
+				This allows us to put resource files next to the jar which will override the ones in the jar.
+			-->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<outputDirectory>${project.build.directory}/deploy</outputDirectory>
+					<archive>
+						<manifest>
+							<mainClass>io.reflection.salesdatagather.SalesDataGatherApplication</mainClass>
+							<addClasspath>true</addClasspath>
+							<classpathPrefix>lib/</classpathPrefix>
+						</manifest>
+						<manifestEntries>
+							<Class-Path>.</Class-Path>
+						</manifestEntries>
+					</archive>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

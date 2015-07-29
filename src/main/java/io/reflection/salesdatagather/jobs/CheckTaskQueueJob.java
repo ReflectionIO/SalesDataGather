@@ -20,13 +20,14 @@ public class CheckTaskQueueJob {
 	@Autowired
 	private GatherTaskService gatherTaskService;
 
-	// Scheduled to run with a fixed delay (in milliseconds) between the end of a run and the start of the next with initial delay in milliseconds
+	// Scheduled to run with a fixed delay (in milliseconds) between the end of a
+	// run and the start of the next with initial delay in milliseconds
 	@Scheduled(fixedDelay = (1000 * 60 * 5), initialDelay = 5000)
 	public void checkTaskQueue() {
 		LOG.info("Checking Task Queue for more tasks");
 
 		LeasedTask task = null;
-		while( (task = taskService.leaseTask()) !=null ){
+		while ((task = taskService.leaseTask()) != null) {
 			gatherTaskService.scheduleTaskForExecution(task);
 		}
 

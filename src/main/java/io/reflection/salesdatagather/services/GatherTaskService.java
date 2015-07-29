@@ -72,9 +72,11 @@ public class GatherTaskService {
 	@Autowired
 	private DataAccountRepository dataAccountRepo;
 
-
 	public void scheduleTaskForExecution(LeasedTask task) {
-		scheduleTaskForExecution(createGatherTaskFromParams(task.getParamMap()));
+		GatherTask gatherTask = createGatherTaskFromParams(task.getParamMap());
+		if (gatherTask == null) return;
+
+		scheduleTaskForExecution(gatherTask);
 	}
 
 	public void scheduleTaskForExecution(DataAccount dataAccount, Date dateToGatherFrom, Date dateToGatherTo, String itemIds, String mainItemId, String countryCodeToGatherFor) {
@@ -96,12 +98,13 @@ public class GatherTaskService {
 		if (splitDataFetch == null) {
 			splitDataFetch = splitDataFetchRepo.createSplitDataFetch(
 					task.getDataAccount().getId(),
-					task.getItemIds(),
+					task.getMainItemId(),
 					task.getDateToGatherFrom(),
 					task.getDateToGatherTo(),
 					task.getCountryCodeToGatherFor());
 		} else if (splitDataFetch.getStatus().equalsIgnoreCase(SplitDataFetchStatus.INGESTED.toString())) {
-			//if already ingested don't bother doing this again and delete the task from the list
+			// if already ingested don't bother doing this again and delete the task
+			// from the list
 			taskService.deleteTask(task.getLeasedTask());
 			return;
 		}
@@ -122,7 +125,7 @@ public class GatherTaskService {
 		Path salesFile = null;
 		Path iapSalesFile = null;
 
-		if(splitDataFetch.getStatus().equalsIgnoreCase(SplitDataFetchStatus.GATHERED.toString())) {
+		if (splitDataFetch.getStatus().equalsIgnoreCase(SplitDataFetchStatus.GATHERED.toString())) {
 			downloadsUrl = splitDataFetch.getDownloadsReportUrl();
 			salesUrl = splitDataFetch.getSalesReportUrl();
 			iapSalesUrl = splitDataFetch.getIapReportUrl();
@@ -132,7 +135,7 @@ public class GatherTaskService {
 			iapSalesFile = cloudStorageService.downloadFile(downloadDir, iapSalesUrl);
 
 			markForDeletionOnExit(downloadsFile, salesFile, iapSalesFile);
-		}else{
+		} else {
 			downloader.downloadFromITunes(downloadDir, task.getDataAccount().getUsername(), task.getDataAccount().getClearPassword(), task.getMainItemId(), task.getItemIds(),
 					task.getCountryCodeToGatherFor(), task.getDateToGatherFrom(), task.getDateToGatherTo());
 
@@ -140,17 +143,17 @@ public class GatherTaskService {
 			salesFile = downloadDir.resolve(ITunesConnectDownloader.SALES_FILE_NAME);
 			iapSalesFile = downloadDir.resolve(ITunesConnectDownloader.IAP_SALES_FILE_NAME);
 
-			if(downloadsFile.toFile().exists()){
+			if (downloadsFile.toFile().exists()) {
 				downloadsUrl = cloudStorageService.uploadFile(downloadsFile.toFile(), generateFileName(task, ReportFileType.DOWNLOADS));
 				splitDataFetch.setDownloadsReportUrl(downloadsUrl);
 			}
 
-			if(salesFile.toFile().exists()){
+			if (salesFile.toFile().exists()) {
 				salesUrl = cloudStorageService.uploadFile(salesFile.toFile(), generateFileName(task, ReportFileType.SALES));
 				splitDataFetch.setSalesReportUrl(salesUrl);
 			}
 
-			if(iapSalesFile.toFile().exists()){
+			if (iapSalesFile.toFile().exists()) {
 				iapSalesUrl = cloudStorageService.uploadFile(iapSalesFile.toFile(), generateFileName(task, ReportFileType.IAPS_SALES));
 				splitDataFetch.setIapReportUrl(iapSalesUrl);
 			}
@@ -159,7 +162,8 @@ public class GatherTaskService {
 			splitDataFetchRepo.updateSplitDataFetch(splitDataFetch);
 		}
 
-		// process downloads and sales files into a map of revenue and downloads per date
+		// process downloads and sales files into a map of revenue and downloads per
+		// date
 		HashMap<Date, CsvRevenueAndDownloadEntry> salesAndDownloadsMap = salesDataProcessor.convertSalesAndDownloadsCSV(salesFile, downloadsFile, iapSalesFile);
 
 		processSalesAndDownloadData(task, salesAndDownloadsMap);
@@ -173,18 +177,18 @@ public class GatherTaskService {
 	}
 
 	private void markForDeletionOnExit(Path... paths) {
-		for(Path path: paths){
+		for (Path path : paths) {
 			File file = path.toFile();
-			if(file.exists()){
+			if (file.exists()) {
 				file.deleteOnExit();
 			}
 		}
 	}
 
 	private void tryAndDeleteFile(Path... paths) {
-		for(Path path: paths){
+		for (Path path : paths) {
 			File file = path.toFile();
-			if(file.exists()){
+			if (file.exists()) {
 				file.delete();
 			}
 		}
@@ -197,26 +201,26 @@ public class GatherTaskService {
 
 		String itemTitle = itemRepository.getItemTitleByAccountAndItemId(task.getDataAccount().getId(), task.getMainItemId());
 
-		for(Date date:dateList) {
+		for (Date date : dateList) {
 			CsvRevenueAndDownloadEntry entry = salesAndDownloadsMap.get(date);
 
-			int phoneRevenue = entry.getRevenueValue(ITunesPlatform.IPHONE)+entry.getRevenueValue(ITunesPlatform.IPOD);
+			int phoneRevenue = entry.getRevenueValue(ITunesPlatform.IPHONE) + entry.getRevenueValue(ITunesPlatform.IPOD);
 			int tabletRevenue = entry.getRevenueValue(ITunesPlatform.IPAD);
-			int totalRevenue = phoneRevenue+tabletRevenue;
+			int totalRevenue = phoneRevenue + tabletRevenue;
 
-			int phoneIapRevenue = entry.getIapRevenueValue(ITunesPlatform.IPHONE)+entry.getIapRevenueValue(ITunesPlatform.IPOD);
+			int phoneIapRevenue = entry.getIapRevenueValue(ITunesPlatform.IPHONE) + entry.getIapRevenueValue(ITunesPlatform.IPOD);
 			int tabletIapRevenue = entry.getIapRevenueValue(ITunesPlatform.IPAD);
-			int totalIapRevenue = phoneIapRevenue+tabletIapRevenue;
+			int totalIapRevenue = phoneIapRevenue + tabletIapRevenue;
 
-			double phoneRevenueRatio = (phoneRevenue==0 || totalRevenue==0)?0:(double)phoneRevenue/(double)totalRevenue;
-			double tabletRevenueRatio = (tabletRevenue==0 || totalRevenue==0)?0:(double)tabletRevenue/(double)totalRevenue;
+			double phoneRevenueRatio = (phoneRevenue == 0 || totalRevenue == 0) ? 0 : (double) phoneRevenue / (double) totalRevenue;
+			double tabletRevenueRatio = (tabletRevenue == 0 || totalRevenue == 0) ? 0 : (double) tabletRevenue / (double) totalRevenue;
 
-			double phoneIapRevenueRatio = (phoneIapRevenue==0 || totalIapRevenue==0)?0:(double)phoneIapRevenue/(double)totalIapRevenue;
-			double tabletIapRevenueRatio = (tabletIapRevenue==0 || totalIapRevenue==0)?0:(double)tabletIapRevenue/(double)totalIapRevenue;
+			double phoneIapRevenueRatio = (phoneIapRevenue == 0 || totalIapRevenue == 0) ? 0 : (double) phoneIapRevenue / (double) totalIapRevenue;
+			double tabletIapRevenueRatio = (tabletIapRevenue == 0 || totalIapRevenue == 0) ? 0 : (double) tabletIapRevenue / (double) totalIapRevenue;
 
-			int phoneDownloads = entry.getDownloadValue(ITunesPlatform.IPHONE)+entry.getDownloadValue(ITunesPlatform.IPOD);
+			int phoneDownloads = entry.getDownloadValue(ITunesPlatform.IPHONE) + entry.getDownloadValue(ITunesPlatform.IPOD);
 			int tabletDownloads = entry.getDownloadValue(ITunesPlatform.IPAD);
-			int totalDownloads = phoneDownloads+tabletDownloads;
+			int totalDownloads = phoneDownloads + tabletDownloads;
 
 			saleSummaryRepo.updateSalesSummaries(task.getDataAccount(), task.getCountryCodeToGatherFor(), task.getMainItemId(), itemTitle, date,
 					phoneRevenueRatio, tabletRevenueRatio, phoneIapRevenueRatio, tabletIapRevenueRatio,
@@ -249,6 +253,8 @@ public class GatherTaskService {
 
 			DataAccount dataAccount = dataAccountRepo.getDataAccountById(Integer.valueOf(paramMap.get("dataAccountId")));
 
+			if (dataAccount == null) return null;
+
 			Date gatherFrom = sdf.parse(paramMap.get("gatherFrom"));
 			Date gatherTo = sdf.parse(paramMap.get("gatherTo"));
 
@@ -260,10 +266,10 @@ public class GatherTaskService {
 			GatherTask task = new GatherTask(dataAccount, gatherFrom, gatherTo, iapItemIds, mainItemId, countryCode, this);
 
 			return task;
-		}catch(NumberFormatException e) {
-			LOG.error("Number format exception when trying to create GatherTask from params: "+paramMap.toString(), e);
+		} catch (NumberFormatException e) {
+			LOG.error("Number format exception when trying to create GatherTask from params: " + paramMap.toString(), e);
 		} catch (ParseException e) {
-			LOG.error("Date parse exception when trying to create GatherTask from params: "+paramMap.toString(), e);
+			LOG.error("Date parse exception when trying to create GatherTask from params: " + paramMap.toString(), e);
 		}
 		return null;
 	}

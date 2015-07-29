@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <included>
-	<property name="LOG_FILE" value="salesdatagather.log" />
-	<property name="LOG_PATH" value="/tmp" />
+	<property name="LOG_FILE" value="logs/salesdatagather.log" />
 
 	<logger name="org.springframework.web" level="INFO" />
 
