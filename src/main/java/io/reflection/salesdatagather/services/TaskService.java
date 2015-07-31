@@ -76,14 +76,7 @@ public class TaskService {
 			if (!initialiseService()) return null;
 		}
 
-		Tasks tasks;
-		String tasksQueueName = appConfig.getTasksQueueName();
-		try {
-			tasks = taskQueueApi.tasks().lease(appConfig.getGoogleProjectName(), tasksQueueName, 1, appConfig.getTaskLeaseTimeSeconds()).execute();
-		} catch (IOException e) {
-			LOG.error(String.format("Could not get a list of tasks from the %s queue", tasksQueueName), e);
-			return null;
-		}
+		Tasks tasks = getTasksFromGoogle();
 
 		if (tasks == null || tasks.getItems() == null) {
 			LOG.debug("Tasks request returned nothing");
@@ -101,6 +94,31 @@ public class TaskService {
 		LeasedTask task = new LeasedTask(paramMap, googleTask);
 
 		return task;
+	}
+
+	private Tasks getTasksFromGoogle() {
+		String tasksQueueName = appConfig.getTasksQueueName();
+		Tasks tasks = null;
+		int tryCount = 0;
+
+		while (tryCount < 3) {
+
+			try {
+				tasks = taskQueueApi.tasks().lease(appConfig.getGoogleProjectName(), tasksQueueName, 1, appConfig.getTaskLeaseTimeSeconds()).execute();
+			} catch (IOException e) {
+				LOG.error(String.format("Could not get a list of tasks from the %s queue", tasksQueueName), e);
+
+				tryCount++;
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e1) {
+				}
+			}
+
+			// we will exit as soon as we have tasks (which may be null) with out an IO exception being caused.
+			return tasks;
+		}
+		return null;
 	}
 
 	private Map<String, String> getParametersFromPayload(String payloadBase64) {
