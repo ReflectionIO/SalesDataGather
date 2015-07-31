@@ -15,7 +15,7 @@ import com.google.common.base.Predicate;
 public class SeleniumHelper {
 	private transient static final Logger LOG = LoggerFactory.getLogger(SeleniumHelper.class.getName());
 
-	private static final int DEFAULT_TIMEOUT_IN_SECONDS = 30;
+	private static final int DEFAULT_TIMEOUT_IN_SECONDS = 60;
 
 	/**
 	 * @param driver
@@ -31,8 +31,8 @@ public class SeleniumHelper {
 	 * @param url
 	 */
 	public static void loadUrl(FirefoxDriver driver, String url) {
-		if(LOG.isDebugEnabled()) {
-			LOG.debug("Opening url: "+url);
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Opening url: " + url);
 		}
 		driver.get(url);
 
@@ -44,7 +44,7 @@ public class SeleniumHelper {
 			}
 		});
 
-		if(LOG.isDebugEnabled()) {
+		if (LOG.isDebugEnabled()) {
 			LOG.debug("Page readyState = complete");
 		}
 	}

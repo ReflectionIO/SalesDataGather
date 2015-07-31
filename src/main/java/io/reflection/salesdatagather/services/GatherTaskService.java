@@ -76,21 +76,29 @@ public class GatherTaskService {
 		GatherTask gatherTask = createGatherTaskFromParams(task.getParamMap());
 		if (gatherTask == null) return;
 
+		gatherTask.setLeasedTask(task);
 		scheduleTaskForExecution(gatherTask);
 	}
 
 	public void scheduleTaskForExecution(DataAccount dataAccount, Date dateToGatherFrom, Date dateToGatherTo, String itemIds, String mainItemId, String countryCodeToGatherFor) {
 		GatherTask task = new GatherTask(dataAccount, dateToGatherFrom, dateToGatherTo, itemIds, mainItemId, countryCodeToGatherFor, this);
 		scheduleTaskForExecution(task);
+		// executeGather(task);
 	}
 
 	public void scheduleTaskForExecution(GatherTask task) {
 		taskExecutorService.execute(task);
+		// executeGather(task);
 	}
 
 	public void executeGather(GatherTask task) {
 		int currentPoolSize = ((ThreadPoolTaskExecutor) taskExecutorService).getThreadPoolExecutor().getQueue().size();
 		LOG.debug("Current queue size: " + currentPoolSize);
+
+		if (!appConfig.getActiveCountryCodes().contains(task.getCountryCodeToGatherFor())) {
+			taskService.deleteTask(task.getLeasedTask());
+			return;
+		}
 
 		SplitDataFetch splitDataFetch = splitDataFetchRepo.findBy(task.getDataAccount().getId(), task.getDateToGatherFrom(), task.getDateToGatherTo(), task.getCountryCodeToGatherFor(),
 				task.getMainItemId());
@@ -174,6 +182,8 @@ public class GatherTaskService {
 		tryAndDeleteFile(downloadsFile);
 		tryAndDeleteFile(salesFile);
 		tryAndDeleteFile(iapSalesFile);
+
+		taskService.deleteTask(task.getLeasedTask());
 	}
 
 	private void markForDeletionOnExit(Path... paths) {

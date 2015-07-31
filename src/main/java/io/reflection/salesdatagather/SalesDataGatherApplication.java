@@ -1,5 +1,9 @@
 package io.reflection.salesdatagather;
 
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -20,6 +24,20 @@ public class SalesDataGatherApplication {
 			LOG.info(String.format("\n\nSales Data Gather App started. Verions: %s under profile: %s\n"
 					+ "=================================================================================\n\n", appConfig.getVersion(), appConfig.getProfile()));
 		}
+
+		Path tempDownloadDir = Paths.get(appConfig.getTempDownloadDir());
+		File tempDir = tempDownloadDir.toFile();
+		if (!tempDir.exists()) {
+			if (!tempDir.mkdirs()) {
+				LOG.error("The temporary download directory does not exist and it could not be created. Exiting app.");
+				tempDir.deleteOnExit();
+				System.exit(0);
+			}
+
+			LOG.info("The temporary download directory did not exist. It has now been created: " + tempDownloadDir);
+		}
+
+		appConfig.logConfig();
 
 		// context.getBean(NicksHelper.class).run();
 	}

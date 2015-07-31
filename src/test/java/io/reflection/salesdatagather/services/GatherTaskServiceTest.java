@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import io.reflection.salesdatagather.BaseSpringTestClass;
 import io.reflection.salesdatagather.model.DataAccount;
-import io.reflection.salesdatagather.model.nondb.GatherTask;
 
 public class GatherTaskServiceTest extends BaseSpringTestClass {
 
@@ -29,7 +28,7 @@ public class GatherTaskServiceTest extends BaseSpringTestClass {
 		account.setUsername("MINICLIP");
 		account.setPassword("CHECK THE DB");
 
-		GatherTask task = new GatherTask(account, sdf.parse(gatherFrom), sdf.parse(gatherTo), itemIds, "543186831", "gb", service);
-		service.executeGather(task);
+		// GatherTask task = new GatherTask(account, sdf.parse(gatherFrom), sdf.parse(gatherTo), itemIds, "543186831", "gb", service);
+		// service.executeGather(task);
 	}
 }

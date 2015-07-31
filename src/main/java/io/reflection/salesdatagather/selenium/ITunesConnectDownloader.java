@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ITunesConnectDownloader {
-	public static final String	SALES_FILE_NAME	= "sales.csv";
+	public static final String	SALES_FILE_NAME			= "sales.csv";
 	public static final String	IAP_SALES_FILE_NAME	= "iap_sales.csv";
 	public static final String	DOWNLOADS_FILE_NAME	= "downloads.csv";
 
@@ -23,14 +23,15 @@ public class ITunesConnectDownloader {
 
 	public void downloadFromITunes(Path downloadDir, String username, String password, String mainItemId, String IAPIds, String countryCodeToGatherFor, Date dateToGatherFrom, Date dateToGatherTo) {
 		FirefoxDriver driver = new SeleniumDriver(downloadDir).getDriver();
-		try{
+		try {
 			downloadFromITunes(driver, downloadDir, username, password, mainItemId, IAPIds, countryCodeToGatherFor, dateToGatherFrom, dateToGatherTo);
-		}catch(Exception e){
+		} catch (Exception e) {
 			driver.quit();
 		}
 	}
 
-	private void downloadFromITunes(FirefoxDriver driver, Path downloadDir, String username, String password, String mainItemId, String IAPIds, String countryCodeToGatherFor, Date dateToGatherFrom, Date dateToGatherTo) {
+	private void downloadFromITunes(FirefoxDriver driver, Path downloadDir, String username, String password, String mainItemId, String IAPIds, String countryCodeToGatherFor, Date dateToGatherFrom,
+			Date dateToGatherTo) {
 		LOG.debug("Logging into ITunes");
 		SeleniumHelper.loginToItunes(driver, username, password);
 
@@ -38,15 +39,18 @@ public class ITunesConnectDownloader {
 		 * ********* DOWNLOADS FOR THE MAIN ITEM ONLY ********************
 		 */
 		String url = helper.getDownloadUrl(dateToGatherFrom, dateToGatherTo, mainItemId, countryCodeToGatherFor);
+		if (url == null) return;
+
 		File downloadFile = getDownloadsReport(driver, downloadDir, url);
 
-		if(downloadFile==null) {
-			SeleniumHelper.loadUrl(driver, url); //go back to the url if the download fails as we will be in an unknown state
+		if (downloadFile == null) {
+			SeleniumHelper.loadUrl(driver, url); // go back to the url if the download fails as we will be in an unknown state
 		}
 
 		File salesFile = getMainItemSalesReport(driver, downloadDir, downloadFile);
 
 		url = helper.getDownloadUrl(dateToGatherFrom, dateToGatherTo, IAPIds, countryCodeToGatherFor);
+		if (url == null) return;
 		File iapSaleFile = getIapSalesReport(driver, downloadDir, url, downloadFile, salesFile);
 	}
 
@@ -65,18 +69,18 @@ public class ITunesConnectDownloader {
 		SeleniumHelper.loadUrl(driver, url);
 
 		// ---- WAIT FOR THE TIMEZONE TO BE CLICKABLE AND THEN CHANGE IT TO LOCAL
-		if(LOG.isDebugEnabled()) {
+		if (LOG.isDebugEnabled()) {
 			LOG.debug("Clicking timezone icon when ready");
 		}
 		SeleniumHelper.clickElementByClassNameWhenReady(driver, ITunesHelper.TIMEZONE_TOGGLE_LINK);
 
-		if(LOG.isDebugEnabled()) {
+		if (LOG.isDebugEnabled()) {
 			LOG.debug("Timezone icon clicked. Waiting for local to be clickable and clicking");
 		}
 
 		SeleniumHelper.clickElementByClassNameWhenReady(driver, ITunesHelper.LOCAL_TIMEZONE_LINK);
 
-		if(LOG.isDebugEnabled()) {
+		if (LOG.isDebugEnabled()) {
 			LOG.debug("Waiting to click on sales");
 		}
 
@@ -88,7 +92,7 @@ public class ITunesConnectDownloader {
 		}
 
 		// ---- WAIT FOR DOWNLOAD TO BE CLICKABLE AND THEN DOWNLOAD
-		if(LOG.isDebugEnabled()) {
+		if (LOG.isDebugEnabled()) {
 			LOG.debug("Waiting to click the share icon");
 		}
 
@@ -99,7 +103,7 @@ public class ITunesConnectDownloader {
 			return null;
 		}
 
-		if(LOG.isDebugEnabled()) {
+		if (LOG.isDebugEnabled()) {
 			LOG.debug("Downloading the sales report");
 		}
 		try {
@@ -110,13 +114,13 @@ public class ITunesConnectDownloader {
 		}
 
 		try {
-			//A second's pause for safety.
+			// A second's pause for safety.
 			Thread.sleep(1000);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 
-		File iapSaleFile = renameDownloadedFile(downloadDir, IAP_SALES_FILE_NAME, downloadFile==null?null:downloadFile.toPath(), salesFile==null?null:salesFile.toPath());
+		File iapSaleFile = renameDownloadedFile(downloadDir, IAP_SALES_FILE_NAME, downloadFile == null ? null : downloadFile.toPath(), salesFile == null ? null : salesFile.toPath());
 		return iapSaleFile;
 	}
 
@@ -138,7 +142,7 @@ public class ITunesConnectDownloader {
 		}
 
 		// ---- WAIT FOR DOWNLOAD TO BE CLICKABLE AND THEN DOWNLOAD
-		if(LOG.isDebugEnabled()) {
+		if (LOG.isDebugEnabled()) {
 			LOG.debug("Waiting to click the share icon");
 		}
 
@@ -149,7 +153,7 @@ public class ITunesConnectDownloader {
 			return null;
 		}
 
-		if(LOG.isDebugEnabled()) {
+		if (LOG.isDebugEnabled()) {
 			LOG.debug("Downloading the sales report");
 		}
 		try {
@@ -160,12 +164,12 @@ public class ITunesConnectDownloader {
 		}
 
 		try {
-			//A second's pause for safety.
+			// A second's pause for safety.
 			Thread.sleep(1000);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		File salesFile = renameDownloadedFile(downloadDir, SALES_FILE_NAME, downloadFile==null?null:downloadFile.toPath());
+		File salesFile = renameDownloadedFile(downloadDir, SALES_FILE_NAME, downloadFile == null ? null : downloadFile.toPath());
 		return salesFile;
 	}
 
@@ -179,19 +183,19 @@ public class ITunesConnectDownloader {
 		SeleniumHelper.loadUrl(driver, url);
 
 		// ---- WAIT FOR THE TIMEZONE TO BE CLICKABLE AND THEN CHANGE IT TO LOCAL
-		if(LOG.isDebugEnabled()) {
+		if (LOG.isDebugEnabled()) {
 			LOG.debug("Clicking timezone icon when ready");
 		}
 		SeleniumHelper.clickElementByClassNameWhenReady(driver, ITunesHelper.TIMEZONE_TOGGLE_LINK);
 
-		if(LOG.isDebugEnabled()) {
+		if (LOG.isDebugEnabled()) {
 			LOG.debug("Timezone icon clicked. Waiting for local to be clickable and clicking");
 		}
 
 		SeleniumHelper.clickElementByClassNameWhenReady(driver, ITunesHelper.LOCAL_TIMEZONE_LINK);
 
 		// ---- WAIT FOR DOWNLOAD TO BE CLICKABLE AND THEN DOWNLOAD
-		if(LOG.isDebugEnabled()) {
+		if (LOG.isDebugEnabled()) {
 			LOG.debug("Waiting to click the share icon");
 		}
 
@@ -202,11 +206,11 @@ public class ITunesConnectDownloader {
 			return null;
 		}
 
-		if(LOG.isDebugEnabled()) {
+		if (LOG.isDebugEnabled()) {
 			LOG.debug("Share icon clicked. Waiting for the download-csv to be clickable");
 		}
 
-		if(LOG.isDebugEnabled()) {
+		if (LOG.isDebugEnabled()) {
 			LOG.debug("Downloading the downloads report");
 		}
 		try {
@@ -217,7 +221,7 @@ public class ITunesConnectDownloader {
 		}
 
 		try {
-			//A second's pause for safety.
+			// A second's pause for safety.
 			Thread.sleep(1000);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -235,34 +239,34 @@ public class ITunesConnectDownloader {
 	 * @return java.io.File
 	 */
 	private File renameDownloadedFile(Path downloadDir, String newFileName, Path... pathsToIgnore) {
-		for(File file: downloadDir.toFile().listFiles()) {
-			if(!file.exists() || !file.isFile()) {
+		for (File file : downloadDir.toFile().listFiles()) {
+			if (!file.exists() || !file.isFile()) {
 				continue;
 			}
 
 			File newFile = new File(file.getParentFile(), newFileName);
-			//if there are no files to ignore, just rename the first file and return
-			if(pathsToIgnore==null) {
+			// if there are no files to ignore, just rename the first file and return
+			if (pathsToIgnore == null) {
 				LOG.debug(String.format("Renaming file %s to %s", file.getName(), newFileName));
 				file.renameTo(newFile);
 				return newFile;
 			}
 
-			//is the current file in the ignore list
+			// is the current file in the ignore list
 			boolean found = false;
-			for(Path toIgnore:pathsToIgnore) {
-				if(toIgnore==null) {
+			for (Path toIgnore : pathsToIgnore) {
+				if (toIgnore == null) {
 					continue;
 				}
 
-				if(file.getName().equalsIgnoreCase(toIgnore.getFileName().toString())) {
-					found=true;
+				if (file.getName().equalsIgnoreCase(toIgnore.getFileName().toString())) {
+					found = true;
 					break;
 				}
 			}
 
-			//the current file is not in the ignore list and therefore is the first file to be renamed
-			if(!found) {
+			// the current file is not in the ignore list and therefore is the first file to be renamed
+			if (!found) {
 				LOG.debug(String.format("Renaming file %s to %s", file.getName(), newFileName));
 				file.renameTo(newFile);
 				return newFile;

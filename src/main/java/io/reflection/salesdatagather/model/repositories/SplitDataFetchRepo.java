@@ -87,29 +87,20 @@ public class SplitDataFetchRepo {
 	}
 
 	public void updateSplitDataFetch(SplitDataFetch splitDataFetch) {
-		String updateSql = "UPDATE split_data_fetch "
-				+ " (dataaccount_id, "
-				+ " fetch_date, fetch_time, "
-				+ " from_date, to_date, "
-				+ " country, itemid, "
-				+ " downloads_report_url, sales_report_url, iap_report_url, "
-				+ " status, "
-				+ " phone_revenue_ratio, tablet_revenue_ratio, phone_iap_revenue_ratio, tablet_iap_revenue_ratio, "
-				+ " phone_downloads, tablet_downloads, total_downloads)"
-				+ " VALUES ("
-				+ "  ?, "
-				+ "  ?, ?, "
-				+ "  ?, ?, "
-				+ "  ?, ?, "
-				+ "  ?, ?, ?, "
-				+ "  ?, "
-				+ "  ?, ?, ?, ?, "
-				+ "  ?, ?, ? "
-				+ " ) where split_data_fetch_id = ?";
+		String updateSql = "UPDATE split_data_fetch set "
+				+ " data_account_id=?, "
+				+ " fetch_date=?, fetch_time=?, "
+				+ " from_date=?, to_date=?, "
+				+ " country=?, itemid=?, "
+				+ " downloads_report_url=?, sales_report_url=?, iap_report_url=?, "
+				+ " status=?, "
+				+ " phone_revenue_ratio=?, tablet_revenue_ratio=?, phone_iap_revenue_ratio=?, tablet_iap_revenue_ratio=?, "
+				+ " phone_downloads=?, tablet_downloads=?, total_downloads=?"
+				+ " where split_data_fetch_id = ?";
 
 		jdbcTemplate.update(updateSql, new Object[] {
 				splitDataFetch.getDataAccountId(),
-				splitDataFetch.getFetchedOn(), new Timestamp(splitDataFetch.getFetchedOn().getTime()),
+				splitDataFetch.getFetchDate(), splitDataFetch.getFetchTime(),
 				splitDataFetch.getFromDate(), splitDataFetch.getToDate(),
 				splitDataFetch.getCountry(), splitDataFetch.getItemId(),
 				splitDataFetch.getDownloadsReportUrl(), splitDataFetch.getSalesReportUrl(), splitDataFetch.getIapReportUrl(),

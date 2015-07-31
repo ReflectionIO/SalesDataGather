@@ -16,6 +16,7 @@ import com.google.api.client.http.InputStreamContent;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.Storage.Objects.Get;
 import com.google.api.services.storage.Storage.Objects.Insert;
+import com.google.api.services.storage.model.StorageObject;
 
 import io.reflection.salesdatagather.AppConfig;
 
@@ -43,13 +44,20 @@ public class CloudStorageService {
 			hasServiceBeenInitialised = true;
 			return true;
 		}
-		return false;
+		return hasServiceBeenInitialised;
 	}
 
 	public String uploadFile(File file, String generateFileName) {
 		try {
-			Insert request = googleCloudStorage.objects().insert(appConfig.getGoogleStorageBucketName(), null, new InputStreamContent("application/octet-stream", new FileInputStream(file))).setName(generateFileName);
-			request.execute();
+			if (!initialiseService()) {
+				LOG.error("Could not upload files as the Google Cloud storage service has not been initialised.");
+			}
+
+			Insert request = googleCloudStorage.objects().insert(appConfig.getGoogleStorageBucketName(), null, new InputStreamContent("application/octet-stream", new FileInputStream(file)))
+					.setName(generateFileName);
+			StorageObject result = request.execute();
+			String url = result.getBucket() + "/" + result.getName();
+			return url;
 		} catch (IOException e) {
 			LOG.error("Error uploading file to Google", e);
 		}
@@ -58,14 +66,17 @@ public class CloudStorageService {
 	}
 
 	public Path downloadFile(Path downloadDir, String downloadUrl) {
-		Path outputFile = downloadDir.resolve("temp_download_"+System.currentTimeMillis()+"_"+((int)Math.random()*1000));
+		Path outputFile = downloadDir.resolve("temp_download_" + System.currentTimeMillis() + "_" + ((int) Math.random() * 1000));
 
-		try (FileOutputStream outputStream = new FileOutputStream(outputFile.toFile())){
+		if (!initialiseService()) {
+			LOG.error("Could not download files as the Google Cloud storage service has not been initialised.");
+		}
+		try (FileOutputStream outputStream = new FileOutputStream(outputFile.toFile())) {
 			Get getRequest = googleCloudStorage.objects().get(appConfig.getGoogleStorageBucketName(), downloadUrl);
 			getRequest.getMediaHttpDownloader().setDirectDownloadEnabled(true);
 			getRequest.executeAndDownloadTo(outputStream);
 		} catch (IOException e) {
-			LOG.error("Error downloading file from Google. URL: "+downloadUrl, e);
+			LOG.error("Error downloading file from Google. URL: " + downloadUrl, e);
 		}
 
 		return outputFile;

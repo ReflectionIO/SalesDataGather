@@ -5,15 +5,15 @@ import java.util.Date;
 import io.reflection.salesdatagather.model.DataAccount;
 import io.reflection.salesdatagather.services.GatherTaskService;
 
-public class GatherTask implements Runnable{
-	private final DataAccount dataAccount;
-	private final Date dateToGatherFrom;
-	private final Date dateToGatherTo;
-	private final String itemIds;
-	private final String countryCodeToGatherFor;
+public class GatherTask implements Runnable {
+	private final DataAccount				dataAccount;
+	private final Date							dateToGatherFrom;
+	private final Date							dateToGatherTo;
+	private final String						itemIds;
+	private final String						countryCodeToGatherFor;
 	private final GatherTaskService	gatherTaskService;
-	private final String	mainItemId;
-	private LeasedTask leasedTask;
+	private final String						mainItemId;
+	private LeasedTask							leasedTask;
 
 	public GatherTask(DataAccount dataAccount, Date dateToGatherFrom, Date dateToGatherTo, String itemIds, String mainItemId, String countryCodeToGatherFor, GatherTaskService gatherTaskService) {
 		this.dataAccount = dataAccount;
@@ -56,5 +56,9 @@ public class GatherTask implements Runnable{
 
 	public LeasedTask getLeasedTask() {
 		return leasedTask;
+	}
+
+	public void setLeasedTask(LeasedTask leasedTask) {
+		this.leasedTask = leasedTask;
 	}
 }

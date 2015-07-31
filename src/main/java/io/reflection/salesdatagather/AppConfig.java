@@ -2,6 +2,8 @@ package io.reflection.salesdatagather;
 
 import java.util.concurrent.ThreadPoolExecutor;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,24 +16,28 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 @Configuration
 @PropertySource("classpath:/application.properties")
 public class AppConfig {
+	private transient static final Logger LOG = LoggerFactory.getLogger(AppConfig.class.getName());
 
 	@Value("${app.version}")
-	private String	version;
+	private String version;
+
+	@Value("${app.build.timestamp}")
+	private String buildTimestamp;
 
 	@Value("${profile}")
-	private String	profile;
+	private String profile;
 
 	@Value("${google.project.name}")
-	private String	googleProjectName;
+	private String googleProjectName;
 
 	@Value("${google.auth.p12key.path}")
-	private String	googleAuthCertPath;
+	private String googleAuthCertPath;
 
 	@Value("${google.auth.email}")
-	private String	googleAuthEmail;
+	private String googleAuthEmail;
 
 	@Value("${google.tasks.queue.name}")
-	private String	tasksQueueName;
+	private String tasksQueueName;
 
 	@Value("${temp.download.dir}")
 	private String tempDownloadDirectory;
@@ -40,7 +46,7 @@ public class AppConfig {
 	private String tempDownloadPrefix;
 
 	@Value("${google.tasks.leaseTimeSeconds}")
-	private Integer	taskLeaseTimeSeconds;
+	private Integer taskLeaseTimeSeconds;
 
 	@Value("${google.storage.filePrefix}")
 	private String googleStorageFilePrefix;
@@ -48,8 +54,24 @@ public class AppConfig {
 	@Value("${google.storage.bucketName}")
 	private String googleStorageBucketName;
 
+	@Value("${executor.queue.capacity}")
+	private Integer executorQueueCapacity;
+
+	@Value("${executor.pool.coreSize}")
+	private Integer executorCorePoolSize;
+
+	@Value("${executor.pool.maxSize}")
+	private Integer executorMaxPoolSize;
+
+	@Value("${activeCountryCodes}")
+	private String activeCountryCodes;
+
 	public String getVersion() {
 		return version;
+	}
+
+	public String getBuildTimestamp() {
+		return buildTimestamp;
 	}
 
 	public String getProfile() {
@@ -76,10 +98,10 @@ public class AppConfig {
 		 * At a time just allow 6 tasks in the queue. This means that it will take double the time of a gather to clear the queue.
 		 * We don't want to keep too many tasks to be borrowed/leased. We will lease as we execute.
 		 */
-		pool.setQueueCapacity(6);
-		pool.setWaitForTasksToCompleteOnShutdown(true);
-		pool.setCorePoolSize(1); //Keep just one thread ready for processing tasks. This will go up to maxPoolSize thread as more tasks are added
-		pool.setMaxPoolSize(6); //only 6 tasks can be run at a time (the schedulling thread becomes the 7th leaving 1 spare for the OS)
+		LOG.info(String.format("Starting a pool of executors with capacity: %d, core size:%d, max size: %d", executorQueueCapacity, executorCorePoolSize, executorMaxPoolSize));
+		pool.setQueueCapacity(executorQueueCapacity);
+		pool.setCorePoolSize(executorCorePoolSize); // Keep just one thread ready for processing tasks. This will go up to maxPoolSize thread as more tasks are added
+		pool.setMaxPoolSize(executorMaxPoolSize); // only 6 tasks can be run at a time (the schedulling thread becomes the 7th leaving 1 spare for the OS)
 		pool.setWaitForTasksToCompleteOnShutdown(true);
 
 		return pool;
@@ -119,5 +141,43 @@ public class AppConfig {
 
 	public String getGoogleStorageBucketName() {
 		return googleStorageBucketName;
+	}
+
+	public String getActiveCountryCodes() {
+		return activeCountryCodes;
+	}
+
+	public void logConfig() {
+		LOG.info(String.format("\n"
+				+ "============================================\n"
+				+ "Configuration we are running under:\n"
+				+ "\tVersion: %s\n"
+				+ "\tBuild Timestamp: %s\n"
+				+ "\tProfile: %s\n"
+				+ "\n"
+				+ "\tgoogleProjectName: %s\n"
+				+ "\tgoogleAuthCertPath: %s\n"
+				+ "\tgoogleAuthEmail: %s\n"
+				+ "\n"
+				+ "\ttasksQueueName: %s\n"
+				+ "\ttaskLeaseTimeSeconds: %s\n"
+				+ "\n"
+				+ "\ttempDownloadDirectory: %s\n"
+				+ "\ttempDownloadPrefix: %s\n"
+				+ "\n"
+				+ "\tgoogleStorageFilePrefix: %s\n"
+				+ "\tgoogleStorageBucketName: %s\n"
+				+ "\n"
+				+ "\texecutorQueueCapacity: %s\n"
+				+ "\texecutorCorePoolSize: %s\n"
+				+ "\texecutorMaxPoolSize: %s\n"
+				+ "\tactiveCountryCodes: %s\n"
+				+ "============================================\n",
+				version, profile, buildTimestamp,
+				googleProjectName, googleAuthCertPath, googleAuthEmail,
+				tasksQueueName, taskLeaseTimeSeconds,
+				tempDownloadDirectory, tempDownloadPrefix,
+				googleStorageFilePrefix, googleStorageBucketName,
+				executorQueueCapacity, executorCorePoolSize, executorMaxPoolSize, activeCountryCodes));
 	}
 }

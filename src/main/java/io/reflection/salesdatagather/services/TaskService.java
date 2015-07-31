@@ -128,10 +128,14 @@ public class TaskService {
 	}
 
 	public void deleteTask(LeasedTask leasedTask) {
+		String googleProjectName = "s~" + appConfig.getGoogleProjectName(); // The s~ is a weird Google naming convension.
+		String tasksQueueName = appConfig.getTasksQueueName();
+		Task googleLeasedTask = leasedTask.getGoogleLeasedTask();
+		String id = googleLeasedTask.getId();
 		try {
-			taskQueueApi.tasks().delete(appConfig.getGoogleProjectName(), appConfig.getTasksQueueName(), leasedTask.getGoogleLeasedTask().getId()).execute();
+			taskQueueApi.tasks().delete(googleProjectName, tasksQueueName, id).execute();
 		} catch (IOException e) {
-			LOG.error("Could not delete a task from the task service with task ID: " + leasedTask.getGoogleLeasedTask().getId(), e);
+			LOG.error("Could not delete a task from the task service with task ID: " + id, e);
 		}
 	}
 }

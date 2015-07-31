@@ -3,7 +3,7 @@ package io.reflection.salesdatagather.services;
 import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.Collections;
+import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +15,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
+import com.google.api.services.storage.StorageScopes;
 import com.google.api.services.taskqueue.TaskqueueScopes;
 
 import io.reflection.salesdatagather.AppConfig;
@@ -23,13 +24,13 @@ import io.reflection.salesdatagather.AppConfig;
 public class GoogleAuthService {
 	private transient static final Logger LOG = LoggerFactory.getLogger(TaskService.class.getName());
 
-	private HttpTransport									httpTransport								= null;
+	private HttpTransport httpTransport = null;
 
 	@Autowired
-	private JsonFactory										jsonFactory;
+	private JsonFactory jsonFactory;
 
 	@Autowired
-	private AppConfig											appConfig;
+	private AppConfig appConfig;
 
 	private GoogleCredential cred;
 
@@ -39,13 +40,13 @@ public class GoogleAuthService {
 				httpTransport = GoogleNetHttpTransport.newTrustedTransport();
 			}
 
-			if(cred==null){
+			if (cred == null) {
 				cred = new GoogleCredential.Builder()
 						.setTransport(httpTransport)
 						.setJsonFactory(jsonFactory)
 						.setServiceAccountId(appConfig.getGoogleAuthEmail())
 						.setServiceAccountPrivateKeyFromP12File(new File(appConfig.getGoogleAuthCertificatePath()))
-						.setServiceAccountScopes(Collections.singleton(TaskqueueScopes.TASKQUEUE))
+						.setServiceAccountScopes(Arrays.asList(TaskqueueScopes.TASKQUEUE, StorageScopes.DEVSTORAGE_READ_WRITE))
 						.build();
 			}
 		} catch (GeneralSecurityException | IOException e) {

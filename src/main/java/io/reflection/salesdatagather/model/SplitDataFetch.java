@@ -1,26 +1,28 @@
 package io.reflection.salesdatagather.model;
 
+import java.sql.Timestamp;
 import java.util.Date;
 
 public class SplitDataFetch {
-	private Integer splitDataFetchId;
-	private Integer dataAccountId;
-	private Date fetchedOn;
-	private Date fromDate;
-	private Date toDate;
-	private String country;
-	private String itemId;
-	private String downloadsReportUrl;
-	private String salesReportUrl;
-	private String iapReportUrl;
-	private String status;
-	private Double phoneRevenueRatio;
-	private Double tabletRevenueRatio;
-	private Double phoneIapRevenueRatio;
-	private Double tabletIapRevenueRatio;
-	private Double phoneDownloads;
-	private Double tabletDownloads;
-	private Double totalDownloads;
+	private Integer		splitDataFetchId;
+	private Integer		dataAccountId;
+	private Date			fetchDate;
+	private Timestamp	fetchTime;
+	private Date			fromDate;
+	private Date			toDate;
+	private String		country;
+	private String		itemId;
+	private String		downloadsReportUrl;
+	private String		salesReportUrl;
+	private String		iapReportUrl;
+	private String		status;
+	private Double		phoneRevenueRatio;
+	private Double		tabletRevenueRatio;
+	private Double		phoneIapRevenueRatio;
+	private Double		tabletIapRevenueRatio;
+	private Double		phoneDownloads;
+	private Double		tabletDownloads;
+	private Double		totalDownloads;
 
 	public Integer getSplitDataFetchId() {
 		return splitDataFetchId;
@@ -38,12 +40,20 @@ public class SplitDataFetch {
 		this.dataAccountId = dataAccountId;
 	}
 
-	public Date getFetchedOn() {
-		return fetchedOn;
+	public Date getFetchDate() {
+		return fetchDate;
 	}
 
-	public void setFetchedOn(Date fetchedOn) {
-		this.fetchedOn = fetchedOn;
+	public void setFetchDate(Date fetchDate) {
+		this.fetchDate = fetchDate;
+	}
+
+	public Timestamp getFetchTime() {
+		return fetchTime;
+	}
+
+	public void setFetchTime(Timestamp fetchTime) {
+		this.fetchTime = fetchTime;
 	}
 
 	public Date getFromDate() {

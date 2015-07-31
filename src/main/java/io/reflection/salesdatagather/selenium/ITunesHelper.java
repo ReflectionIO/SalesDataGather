@@ -1,8 +1,5 @@
 package io.reflection.salesdatagather.selenium;
 
-import io.reflection.salesdatagather.AppConfig;
-import io.reflection.salesdatagather.model.enums.ITunesLocation;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -12,6 +9,9 @@ import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import io.reflection.salesdatagather.AppConfig;
+import io.reflection.salesdatagather.model.enums.ITunesLocation;
 
 @Component
 public class ITunesHelper {
@@ -25,12 +25,15 @@ public class ITunesHelper {
 	private AppConfig appConfig;
 
 	public String getDownloadUrl(Date dateToGatherFrom, Date dateToGatherTo, String itemIds, String countryCodeToGatherFor) {
+		if (itemIds == null || "null".equals(itemIds)) return null;
+
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
 		ITunesLocation location = ITunesLocation.valueOf(countryCodeToGatherFor.toUpperCase());
 
 		String url = "https://reportingitc2.apple.com/?startDate=" + sdf.format(dateToGatherFrom) + "&endDate=" + sdf.format(dateToGatherTo) + "&group=platform&filter_content=" + itemIds
-				+ "&filter_piano_location=" + location.getItunesStoreFrontId(); // + "&filter_platform=iPad,iPhone,iPod,Windows%252C%2520Macintosh%252C%2520UNKNOWN"; Don't need to add the platform as we are adding all of them to the filter anyway
+				+ "&filter_piano_location=" + location.getItunesStoreFrontId(); // + "&filter_platform=iPad,iPhone,iPod,Windows%252C%2520Macintosh%252C%2520UNKNOWN"; Don't need to add the platform as we are
+																																				// adding all of them to the filter anyway
 
 		return url;
 	}
@@ -41,6 +44,6 @@ public class ITunesHelper {
 		String from = sdf.format(gatherFrom);
 		String to = sdf.format(gatherTo);
 
-		return Files.createTempDirectory(Paths.get(appConfig.getTempDownloadDir()), ""+dataAccountId+"-"+mainItemId+"-"+countryCode+"-"+from+"-"+to+"-");
+		return Files.createTempDirectory(Paths.get(appConfig.getTempDownloadDir()), "" + dataAccountId + "-" + mainItemId + "-" + countryCode + "-" + from + "-" + to + "-");
 	}
 }
