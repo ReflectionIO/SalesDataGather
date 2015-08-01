@@ -12,12 +12,12 @@ import io.reflection.salesdatagather.BaseSpringTestClass;
 import io.reflection.salesdatagather.services.GoogleAuthService;
 import io.reflection.salesdatagather.services.TaskService;
 
-public class TaskServiceTests extends BaseSpringTestClass{
+public class TaskServiceTests extends BaseSpringTestClass {
 	@Autowired
 	private GoogleAuthService authService;
 
 	@Autowired
-	private TaskService	taskService;
+	private TaskService taskService;
 
 	@Test
 	@Ignore
@@ -36,7 +36,7 @@ public class TaskServiceTests extends BaseSpringTestClass{
 	@Test
 	@Ignore
 	public void leaseTasksTest() {
-		assertNotNull("Could not lease a task from the task service", taskService.leaseTask());
+		assertNotNull("Could not lease a task from the task service", taskService.leaseTask(1));
 	}
 
 	@Test

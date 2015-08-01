@@ -1,7 +1,9 @@
 package io.reflection.salesdatagather.services;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.codec.binary.Base64;
@@ -11,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.http.HttpRequest;
+import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.services.taskqueue.Taskqueue;
 import com.google.api.services.taskqueue.Taskqueue.Taskqueues.Get;
 import com.google.api.services.taskqueue.TaskqueueRequest;
@@ -39,19 +43,13 @@ public class TaskService {
 
 	public synchronized boolean initialiseService() {
 		if (!hasServiceBeenInitialised) {
-			Credential credential = googleAuthService.authorise();
+			final Credential credential = googleAuthService.authorise();
 			if (credential == null) return false;
 
 			LOG.debug("Initialising task queue api");
 			String projectName = appConfig.getGoogleProjectName();
 
-			taskQueueApi = new Taskqueue.Builder(googleAuthService.getHttpTransport(), googleAuthService.getJsonFactory(), credential)
-					.setApplicationName(projectName).setTaskqueueRequestInitializer(new TaskqueueRequestInitializer() {
-						@Override
-						public void initializeTaskqueueRequest(TaskqueueRequest<?> request) {
-							request.setPrettyPrint(Boolean.TRUE);
-						}
-					}).build();
+			taskQueueApi = buildTaskQueue(credential, projectName);
 
 			try {
 				Get request = taskQueueApi.taskqueues().get(projectName, appConfig.getTasksQueueName());
@@ -71,12 +69,39 @@ public class TaskService {
 		return false;
 	}
 
-	public LeasedTask leaseTask() {
+	private Taskqueue buildTaskQueue(final Credential credential, String projectName) {
+		return new Taskqueue.Builder(
+				googleAuthService.getHttpTransport(),
+				googleAuthService.getJsonFactory(),
+				createHttpRequestInitializer(credential))
+						.setApplicationName(projectName)
+						.setTaskqueueRequestInitializer(new TaskqueueRequestInitializer() {
+							@Override
+							public void initializeTaskqueueRequest(TaskqueueRequest<?> request) {
+								request.setPrettyPrint(Boolean.TRUE);
+							}
+						})
+						.build();
+	}
+
+	private HttpRequestInitializer createHttpRequestInitializer(final Credential credential) {
+		return new HttpRequestInitializer() {
+
+			@Override
+			public void initialize(HttpRequest request) throws IOException {
+				credential.initialize(request);
+				request.setConnectTimeout(60 * 1000); // 1 minute
+				request.setReadTimeout(60 * 1000); // 1 minute
+			}
+		};
+	}
+
+	public List<LeasedTask> leaseTask(int taskCountToLease) {
 		if (!hasServiceBeenInitialised) {
 			if (!initialiseService()) return null;
 		}
 
-		Tasks tasks = getTasksFromGoogle();
+		Tasks tasks = getTasksFromGoogle(taskCountToLease);
 
 		if (tasks == null || tasks.getItems() == null) {
 			LOG.debug("Tasks request returned nothing");
@@ -87,16 +112,17 @@ public class TaskService {
 
 		if (tasks == null || tasks.getItems() == null || tasks.getItems().size() == 0) return null;
 
-		Task googleTask = tasks.getItems().get(0);
+		ArrayList<LeasedTask> taskList = new ArrayList<LeasedTask>(tasks.getItems().size());
+		for (Task googleTask : tasks.getItems()) {
+			Map<String, String> paramMap = getParametersFromPayload(googleTask.getPayloadBase64());
+			LeasedTask task = new LeasedTask(paramMap, googleTask);
+			taskList.add(task);
+		}
 
-		Map<String, String> paramMap = getParametersFromPayload(googleTask.getPayloadBase64());
-
-		LeasedTask task = new LeasedTask(paramMap, googleTask);
-
-		return task;
+		return taskList;
 	}
 
-	private Tasks getTasksFromGoogle() {
+	private Tasks getTasksFromGoogle(int taskCountToLease) {
 		String tasksQueueName = appConfig.getTasksQueueName();
 		Tasks tasks = null;
 		int tryCount = 0;
@@ -104,7 +130,7 @@ public class TaskService {
 		while (tryCount < 3) {
 
 			try {
-				tasks = taskQueueApi.tasks().lease(appConfig.getGoogleProjectName(), tasksQueueName, 1, appConfig.getTaskLeaseTimeSeconds()).execute();
+				tasks = taskQueueApi.tasks().lease(appConfig.getGoogleProjectName(), tasksQueueName, taskCountToLease, appConfig.getTaskLeaseTimeSeconds()).execute();
 			} catch (IOException e) {
 				LOG.error(String.format("Could not get a list of tasks from the %s queue", tasksQueueName), e);
 

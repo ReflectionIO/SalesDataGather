@@ -48,6 +48,9 @@ public class AppConfig {
 	@Value("${google.tasks.leaseTimeSeconds}")
 	private Integer taskLeaseTimeSeconds;
 
+	@Value("${google.tasks.batchSize}")
+	private Integer taskBatchSize;
+
 	@Value("${google.storage.filePrefix}")
 	private String googleStorageFilePrefix;
 
@@ -147,35 +150,41 @@ public class AppConfig {
 		return activeCountryCodes;
 	}
 
+	public Integer getTaskBatchSize() {
+		return taskBatchSize;
+	}
+
 	public void logConfig() {
 		LOG.info(String.format("\n"
 				+ "============================================\n"
 				+ "Configuration we are running under:\n"
-				+ "\tVersion: %s\n"
-				+ "\tBuild Timestamp: %s\n"
-				+ "\tProfile: %s\n"
+				+ "\tVersion:\t\t\t%s\n"
+				+ "\tBuild Timestamp:\t\t%s\n"
+				+ "\tProfile:\t\t\t%s\n"
 				+ "\n"
-				+ "\tgoogleProjectName: %s\n"
-				+ "\tgoogleAuthCertPath: %s\n"
-				+ "\tgoogleAuthEmail: %s\n"
+				+ "\tgoogleProjectName:\t\t%s\n"
+				+ "\tgoogleAuthCertPath:\t\t%s\n"
+				+ "\tgoogleAuthEmail:\t\t%s\n"
 				+ "\n"
-				+ "\ttasksQueueName: %s\n"
-				+ "\ttaskLeaseTimeSeconds: %s\n"
+				+ "\tTask processing batch size:\t%s\n"
+				+ "\tTasks Queue Name:\t\t%s\n"
+				+ "\tTasks lease time in seconds:\t%s\n"
 				+ "\n"
-				+ "\ttempDownloadDirectory: %s\n"
-				+ "\ttempDownloadPrefix: %s\n"
+				+ "\tDownload Directory:\t\t%s\n"
+				+ "\tDownload Prefix:\t\t%s\n"
 				+ "\n"
-				+ "\tgoogleStorageFilePrefix: %s\n"
-				+ "\tgoogleStorageBucketName: %s\n"
+				+ "\tStorage File Prefix:\t\t%s\n"
+				+ "\tStorage Bucket Name:\t\t%s\n"
 				+ "\n"
-				+ "\texecutorQueueCapacity: %s\n"
-				+ "\texecutorCorePoolSize: %s\n"
-				+ "\texecutorMaxPoolSize: %s\n"
-				+ "\tactiveCountryCodes: %s\n"
+				+ "\tExecutor Queue Capacity:\t%s\n"
+				+ "\tExecutor Core Pool Size:\t%s\n"
+				+ "\tExecutor Max Pool Size:\t\t%s\n"
+				+ "\n"
+				+ "\tActive Country Codes:\t\t%s\n"
 				+ "============================================\n",
 				version, profile, buildTimestamp,
 				googleProjectName, googleAuthCertPath, googleAuthEmail,
-				tasksQueueName, taskLeaseTimeSeconds,
+				taskBatchSize, tasksQueueName, taskLeaseTimeSeconds,
 				tempDownloadDirectory, tempDownloadPrefix,
 				googleStorageFilePrefix, googleStorageBucketName,
 				executorQueueCapacity, executorCorePoolSize, executorMaxPoolSize, activeCountryCodes));
