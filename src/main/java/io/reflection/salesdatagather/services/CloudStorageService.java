@@ -72,7 +72,12 @@ public class CloudStorageService {
 			LOG.error("Could not download files as the Google Cloud storage service has not been initialised.");
 		}
 		try (FileOutputStream outputStream = new FileOutputStream(outputFile.toFile())) {
-			Get getRequest = googleCloudStorage.objects().get(appConfig.getGoogleStorageBucketName(), downloadUrl);
+			int bucketNameEndIndex = downloadUrl.indexOf('/', 0);
+
+			String bucketName = downloadUrl.substring(0, bucketNameEndIndex);
+			String objectName = downloadUrl.substring(bucketNameEndIndex + 1);
+
+			Get getRequest = googleCloudStorage.objects().get(bucketName, objectName);
 			getRequest.getMediaHttpDownloader().setDirectDownloadEnabled(true);
 			getRequest.executeAndDownloadTo(outputStream);
 		} catch (IOException e) {
