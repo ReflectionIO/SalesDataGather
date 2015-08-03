@@ -16,7 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import io.reflection.salesdatagather.AppConfig;
@@ -83,18 +82,13 @@ public class GatherTaskService {
 	public void scheduleTaskForExecution(DataAccount dataAccount, Date dateToGatherFrom, Date dateToGatherTo, String itemIds, String mainItemId, String countryCodeToGatherFor) {
 		GatherTask task = new GatherTask(dataAccount, dateToGatherFrom, dateToGatherTo, itemIds, mainItemId, countryCodeToGatherFor, this);
 		scheduleTaskForExecution(task);
-		// executeGather(task);
 	}
 
 	public void scheduleTaskForExecution(GatherTask task) {
 		taskExecutorService.execute(task);
-		// executeGather(task);
 	}
 
 	public void executeGather(GatherTask task) {
-		int currentPoolSize = ((ThreadPoolTaskExecutor) taskExecutorService).getThreadPoolExecutor().getQueue().size();
-		LOG.debug("Current queue size: " + currentPoolSize);
-
 		if (!appConfig.getActiveCountryCodes().contains(task.getCountryCodeToGatherFor())) {
 			taskService.deleteTask(task.getLeasedTask());
 			return;
@@ -129,40 +123,43 @@ public class GatherTaskService {
 		String salesUrl = null;
 		String iapSalesUrl = null;
 
-		Path downloadsFile = null;
-		Path salesFile = null;
-		Path iapSalesFile = null;
+		Path downloadsFilePath = null;
+		Path salesFilePath = null;
+		Path iapSalesFilePath = null;
 
 		if (splitDataFetch.getStatus().equalsIgnoreCase(SplitDataFetchStatus.GATHERED.toString())) {
 			downloadsUrl = splitDataFetch.getDownloadsReportUrl();
 			salesUrl = splitDataFetch.getSalesReportUrl();
 			iapSalesUrl = splitDataFetch.getIapReportUrl();
 
-			downloadsFile = cloudStorageService.downloadFile(downloadDir, downloadsUrl);
-			salesFile = cloudStorageService.downloadFile(downloadDir, salesUrl);
-			iapSalesFile = cloudStorageService.downloadFile(downloadDir, iapSalesUrl);
+			downloadsFilePath = cloudStorageService.downloadFile(downloadDir, downloadsUrl);
+			salesFilePath = cloudStorageService.downloadFile(downloadDir, salesUrl);
+			iapSalesFilePath = cloudStorageService.downloadFile(downloadDir, iapSalesUrl);
 
-			markForDeletionOnExit(downloadsFile, salesFile, iapSalesFile);
+			markForDeletionOnExit(downloadsFilePath, salesFilePath, iapSalesFilePath);
 		} else {
 			downloader.downloadFromITunes(downloadDir, task.getDataAccount().getUsername(), task.getDataAccount().getClearPassword(), task.getMainItemId(), task.getItemIds(),
 					task.getCountryCodeToGatherFor(), task.getDateToGatherFrom(), task.getDateToGatherTo());
 
-			downloadsFile = downloadDir.resolve(ITunesConnectDownloader.DOWNLOADS_FILE_NAME);
-			salesFile = downloadDir.resolve(ITunesConnectDownloader.SALES_FILE_NAME);
-			iapSalesFile = downloadDir.resolve(ITunesConnectDownloader.IAP_SALES_FILE_NAME);
+			downloadsFilePath = downloadDir.resolve(ITunesConnectDownloader.DOWNLOADS_FILE_NAME);
+			salesFilePath = downloadDir.resolve(ITunesConnectDownloader.SALES_FILE_NAME);
+			iapSalesFilePath = downloadDir.resolve(ITunesConnectDownloader.IAP_SALES_FILE_NAME);
 
-			if (downloadsFile.toFile().exists()) {
-				downloadsUrl = cloudStorageService.uploadFile(downloadsFile.toFile(), generateFileName(task, ReportFileType.DOWNLOADS));
+			File downloadsFile = downloadsFilePath.toFile();
+			if (downloadsFile.exists() && downloadsFile.length() > 0) {
+				downloadsUrl = cloudStorageService.uploadFile(downloadsFile, generateFileName(task, ReportFileType.DOWNLOADS));
 				splitDataFetch.setDownloadsReportUrl(downloadsUrl);
 			}
 
-			if (salesFile.toFile().exists()) {
-				salesUrl = cloudStorageService.uploadFile(salesFile.toFile(), generateFileName(task, ReportFileType.SALES));
+			File salesFile = salesFilePath.toFile();
+			if (salesFile.exists() && salesFile.length() > 0) {
+				salesUrl = cloudStorageService.uploadFile(salesFile, generateFileName(task, ReportFileType.SALES));
 				splitDataFetch.setSalesReportUrl(salesUrl);
 			}
 
-			if (iapSalesFile.toFile().exists()) {
-				iapSalesUrl = cloudStorageService.uploadFile(iapSalesFile.toFile(), generateFileName(task, ReportFileType.IAPS_SALES));
+			File iapSalesFile = iapSalesFilePath.toFile();
+			if (iapSalesFile.exists() && iapSalesFile.length() > 0) {
+				iapSalesUrl = cloudStorageService.uploadFile(iapSalesFile, generateFileName(task, ReportFileType.IAPS_SALES));
 				splitDataFetch.setIapReportUrl(iapSalesUrl);
 			}
 
@@ -172,22 +169,26 @@ public class GatherTaskService {
 
 		// process downloads and sales files into a map of revenue and downloads per
 		// date
-		HashMap<Date, CsvRevenueAndDownloadEntry> salesAndDownloadsMap = salesDataProcessor.convertSalesAndDownloadsCSV(salesFile, downloadsFile, iapSalesFile);
+		HashMap<Date, CsvRevenueAndDownloadEntry> salesAndDownloadsMap = salesDataProcessor.convertSalesAndDownloadsCSV(salesFilePath, downloadsFilePath, iapSalesFilePath);
 
 		processSalesAndDownloadData(task, salesAndDownloadsMap);
 
 		splitDataFetch.setStatus(SplitDataFetchStatus.INGESTED.toString());
 		splitDataFetchRepo.updateSplitDataFetch(splitDataFetch);
 
-		tryAndDeleteFile(downloadsFile);
-		tryAndDeleteFile(salesFile);
-		tryAndDeleteFile(iapSalesFile);
+		tryAndDeleteFile(downloadsFilePath, salesFilePath, iapSalesFilePath, downloadDir);
 
 		taskService.deleteTask(task.getLeasedTask());
 	}
 
 	private void markForDeletionOnExit(Path... paths) {
+		if (paths == null) return;
+
 		for (Path path : paths) {
+			if (path == null) {
+				continue;
+			}
+
 			File file = path.toFile();
 			if (file.exists()) {
 				file.deleteOnExit();
@@ -197,9 +198,16 @@ public class GatherTaskService {
 
 	private void tryAndDeleteFile(Path... paths) {
 		for (Path path : paths) {
+			if (path == null) {
+				continue;
+			}
+
 			File file = path.toFile();
 			if (file.exists()) {
-				file.delete();
+				try {
+					file.delete();
+				} catch (Exception e) {
+				}
 			}
 		}
 	}
