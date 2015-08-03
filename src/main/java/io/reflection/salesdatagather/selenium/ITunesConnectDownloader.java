@@ -44,20 +44,25 @@ public class ITunesConnectDownloader {
 		/*
 		 * ********* DOWNLOADS FOR THE MAIN ITEM ONLY ********************
 		 */
-		String url = helper.getDownloadUrl(dateToGatherFrom, dateToGatherTo, mainItemId, countryCodeToGatherFor);
-		if (url == null) return;
+		try {
 
-		File downloadFile = getDownloadsReport(driver, downloadDir, url);
+			String url = helper.getDownloadUrl(dateToGatherFrom, dateToGatherTo, mainItemId, countryCodeToGatherFor);
+			if (url == null) return;
 
-		if (downloadFile == null) {
-			SeleniumHelper.loadUrl(driver, url); // go back to the url if the download fails as we will be in an unknown state
+			File downloadFile = getDownloadsReport(driver, downloadDir, url);
+
+			if (downloadFile == null) {
+				SeleniumHelper.loadUrl(driver, url); // go back to the url if the download fails as we will be in an unknown state
+			}
+
+			File salesFile = getMainItemSalesReport(driver, downloadDir, downloadFile);
+
+			url = helper.getDownloadUrl(dateToGatherFrom, dateToGatherTo, IAPIds, countryCodeToGatherFor);
+			if (url == null) return;
+			File iapSaleFile = getIapSalesReport(driver, downloadDir, url, downloadFile, salesFile);
+		} catch (Exception e) {
+			LOG.error("An unknown error occured while trying to download the reports");
 		}
-
-		File salesFile = getMainItemSalesReport(driver, downloadDir, downloadFile);
-
-		url = helper.getDownloadUrl(dateToGatherFrom, dateToGatherTo, IAPIds, countryCodeToGatherFor);
-		if (url == null) return;
-		File iapSaleFile = getIapSalesReport(driver, downloadDir, url, downloadFile, salesFile);
 	}
 
 	/**
