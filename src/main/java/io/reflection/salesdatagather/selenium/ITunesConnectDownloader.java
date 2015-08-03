@@ -26,7 +26,13 @@ public class ITunesConnectDownloader {
 		try {
 			downloadFromITunes(driver, downloadDir, username, password, mainItemId, IAPIds, countryCodeToGatherFor, dateToGatherFrom, dateToGatherTo);
 		} catch (Exception e) {
+			LOG.error("Exception thrown while trying to download iTunes reports.", e);
+		} finally {
 			driver.quit();
+			try {
+				driver.kill();
+			} catch (Exception e2) {
+			}
 		}
 	}
 
