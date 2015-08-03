@@ -66,6 +66,8 @@ public class CloudStorageService {
 	}
 
 	public Path downloadFile(Path downloadDir, String downloadUrl) {
+		if (downloadDir == null || downloadUrl == null || downloadUrl.trim().length() == 0) return null;
+
 		Path outputFile = downloadDir.resolve("temp_download_" + System.currentTimeMillis() + "_" + ((int) Math.random() * 1000));
 
 		if (!initialiseService()) {
@@ -79,7 +81,7 @@ public class CloudStorageService {
 
 			Get getRequest = googleCloudStorage.objects().get(bucketName, objectName);
 			getRequest.getMediaHttpDownloader().setDirectDownloadEnabled(true);
-			getRequest.executeAndDownloadTo(outputStream);
+			getRequest.executeMediaAndDownloadTo(outputStream);
 		} catch (IOException e) {
 			LOG.error("Error downloading file from Google. URL: " + downloadUrl, e);
 		}
