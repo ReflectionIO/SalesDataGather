@@ -172,10 +172,13 @@ public class TaskService {
 	}
 
 	public void deleteTask(LeasedTask leasedTask) {
+		if (leasedTask == null) return;
+
 		String googleProjectName = "s~" + appConfig.getGoogleProjectName(); // The s~ is a weird Google naming convension.
 		String tasksQueueName = appConfig.getTasksQueueName();
 		Task googleLeasedTask = leasedTask.getGoogleLeasedTask();
 		String id = googleLeasedTask.getId();
+		LOG.debug("Deleting task with ID: " + id);
 		try {
 			taskQueueApi.tasks().delete(googleProjectName, tasksQueueName, id).execute();
 		} catch (IOException e) {
