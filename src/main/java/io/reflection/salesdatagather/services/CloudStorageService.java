@@ -39,7 +39,7 @@ public class CloudStorageService {
 			Credential credential = googleAuthService.authorise();
 			if (credential == null) return false;
 
-			googleCloudStorage = new Storage.Builder(googleAuthService.getHttpTransport(), googleAuthService.getJsonFactory(), credential).build();
+			googleCloudStorage = new Storage.Builder(googleAuthService.getHttpTransport(), googleAuthService.getJsonFactory(), credential).setApplicationName(appConfig.getGoogleProjectName()).build();
 
 			hasServiceBeenInitialised = true;
 			return true;
