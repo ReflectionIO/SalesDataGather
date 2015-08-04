@@ -61,4 +61,14 @@ public class GatherTask implements Runnable {
 	public void setLeasedTask(LeasedTask leasedTask) {
 		this.leasedTask = leasedTask;
 	}
+
+	public Integer getDataAccountId() {
+		return dataAccount != null ? dataAccount.getId() : null;
+	}
+
+	@Override
+	public String toString() {
+		return "GatherTask [dataAccount=" + getDataAccountId() + ", mainItemId=" + mainItemId + ", countryCodeToGatherFor=" + countryCodeToGatherFor + ", dateToGatherFrom=" + dateToGatherFrom
+				+ ", dateToGatherTo=" + dateToGatherTo + ", itemIds=" + itemIds + "]";
+	}
 }
