@@ -172,7 +172,10 @@ public class TaskService {
 	}
 
 	public void deleteTask(LeasedTask leasedTask) {
-		if (leasedTask == null) return;
+		if (leasedTask == null) {
+			LOG.debug("Can't delete null leasedTask");
+			return;
+		}
 
 		String googleProjectName = "s~" + appConfig.getGoogleProjectName(); // The s~ is a weird Google naming convension.
 		String tasksQueueName = appConfig.getTasksQueueName();
@@ -182,7 +185,7 @@ public class TaskService {
 		try {
 			taskQueueApi.tasks().delete(googleProjectName, tasksQueueName, id).execute();
 		} catch (IOException e) {
-			LOG.error("Could not delete a task from the task service with task ID: " + id, e);
+			LOG.error("Could not delete a task from the task service with task ID: " + id + ", error message: " + e.getMessage());
 		}
 	}
 }

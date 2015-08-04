@@ -58,7 +58,10 @@ public class ITunesConnectDownloader {
 			File salesFile = getMainItemSalesReport(driver, downloadDir, downloadFile);
 
 			url = helper.getDownloadUrl(dateToGatherFrom, dateToGatherTo, IAPIds, countryCodeToGatherFor);
-			if (url == null) return;
+			if (url == null) {
+				LOG.debug("There are no IAPs for this item. Returning.");
+				return;
+			}
 			File iapSaleFile = getIapSalesReport(driver, downloadDir, url, downloadFile, salesFile);
 		} catch (Exception e) {
 			LOG.error("An unknown error occured while trying to download the reports");
