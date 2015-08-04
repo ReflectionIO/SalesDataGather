@@ -163,8 +163,10 @@ public class GatherTaskService {
 				splitDataFetch.setIapReportUrl(iapSalesUrl);
 			}
 
-			splitDataFetch.setStatus(SplitDataFetchStatus.GATHERED.toString());
-			splitDataFetchRepo.updateSplitDataFetch(splitDataFetch);
+			if (doesAtLeastOneFileExistWithData(downloadsFilePath, salesFilePath, iapSalesFilePath)) {
+				splitDataFetch.setStatus(SplitDataFetchStatus.GATHERED.toString());
+				splitDataFetchRepo.updateSplitDataFetch(splitDataFetch);
+			}
 		}
 
 		if (doesAtLeastOneFileExistWithData(downloadsFilePath, salesFilePath, iapSalesFilePath)) {
@@ -230,7 +232,15 @@ public class GatherTaskService {
 		ArrayList<Date> dateList = new ArrayList<Date>(salesAndDownloadsMap.keySet());
 		Collections.sort(dateList, ComparatorUtils.naturalComparator());
 
-		String itemTitle = itemRepository.getItemTitleByAccountAndItemId(task.getDataAccount().getId(), task.getMainItemId());
+		String itemTitle = null;
+		try {
+			itemTitle = itemRepository.getItemTitleByAccountAndItemId(task.getDataAccount().getId(), task.getMainItemId());
+		} catch (Exception e) {
+			LOG.error(String.format("Could not get the title of an item. Account ID: %s, ItemId: %s", task.getDataAccountId(), task.getMainItemId()));
+			itemTitle = "";
+		}
+
+		int updatedCount = 0;
 
 		for (Date date : dateList) {
 			CsvRevenueAndDownloadEntry entry = salesAndDownloadsMap.get(date);
@@ -253,10 +263,17 @@ public class GatherTaskService {
 			int tabletDownloads = entry.getDownloadValue(ITunesPlatform.IPAD);
 			int totalDownloads = phoneDownloads + tabletDownloads;
 
-			saleSummaryRepo.updateSalesSummaries(task.getDataAccount(), task.getCountryCodeToGatherFor(), task.getMainItemId(), itemTitle, date,
+			int updated = saleSummaryRepo.updateSalesSummaries(task.getDataAccount(), task.getCountryCodeToGatherFor(), task.getMainItemId(), itemTitle, date,
 					phoneRevenueRatio, tabletRevenueRatio, phoneIapRevenueRatio, tabletIapRevenueRatio,
 					phoneDownloads, tabletDownloads, totalDownloads);
+
+			if (updated > 0) {
+				updatedCount++;
+			}
 		}
+
+		LOG.debug(
+				String.format("Updated %d out of %d sales summary records for dataaccount: %s, itemid: %s - %s", updatedCount, dateList.size(), task.getDataAccountId(), task.getMainItemId(), itemTitle));
 	}
 
 	private String generateFileName(GatherTask task, ReportFileType reportFileType) {
@@ -278,7 +295,7 @@ public class GatherTaskService {
 				.toString();
 	}
 
-	private GatherTask createGatherTaskFromParams(Map<String, String> paramMap) {
+	public GatherTask createGatherTaskFromParams(Map<String, String> paramMap) {
 		try {
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
