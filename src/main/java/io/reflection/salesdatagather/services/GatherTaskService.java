@@ -167,18 +167,31 @@ public class GatherTaskService {
 			splitDataFetchRepo.updateSplitDataFetch(splitDataFetch);
 		}
 
-		// process downloads and sales files into a map of revenue and downloads per
-		// date
-		HashMap<Date, CsvRevenueAndDownloadEntry> salesAndDownloadsMap = salesDataProcessor.convertSalesAndDownloadsCSV(salesFilePath, downloadsFilePath, iapSalesFilePath);
+		if (doesAtLeastOneFileExistWithData(downloadsFilePath, salesFilePath, iapSalesFilePath)) {
+			// process downloads and sales files into a map of revenue and downloads per date
+			HashMap<Date, CsvRevenueAndDownloadEntry> salesAndDownloadsMap = salesDataProcessor.convertSalesAndDownloadsCSV(salesFilePath, downloadsFilePath, iapSalesFilePath);
 
-		processSalesAndDownloadData(task, salesAndDownloadsMap);
+			if (salesAndDownloadsMap != null) {
+				processSalesAndDownloadData(task, salesAndDownloadsMap);
+			}
 
-		splitDataFetch.setStatus(SplitDataFetchStatus.INGESTED.toString());
-		splitDataFetchRepo.updateSplitDataFetch(splitDataFetch);
-
-		tryAndDeleteFile(downloadsFilePath, salesFilePath, iapSalesFilePath, downloadDir);
+			splitDataFetch.setStatus(SplitDataFetchStatus.INGESTED.toString());
+			splitDataFetchRepo.updateSplitDataFetch(splitDataFetch);
+		}
 
 		taskService.deleteTask(task.getLeasedTask());
+
+		tryAndDeleteFile(downloadsFilePath, salesFilePath, iapSalesFilePath, downloadDir);
+	}
+
+	private boolean doesAtLeastOneFileExistWithData(Path... paths) {
+		if (paths == null) return false;
+
+		for (Path path : paths) {
+			if (path != null && path.toFile().exists() && path.toFile().length() > 0) return true;
+		}
+
+		return false;
 	}
 
 	private void markForDeletionOnExit(Path... paths) {
