@@ -31,6 +31,7 @@ import io.reflection.salesdatagather.model.repositories.DataAccountRepository;
 import io.reflection.salesdatagather.model.repositories.SaleItemRepository;
 import io.reflection.salesdatagather.model.repositories.SaleSummaryRepo;
 import io.reflection.salesdatagather.model.repositories.SplitDataFetchRepo;
+import io.reflection.salesdatagather.model.repositories.SplitDataRatioRepo;
 import io.reflection.salesdatagather.selenium.ITunesConnectDownloader;
 import io.reflection.salesdatagather.selenium.ITunesHelper;
 
@@ -58,6 +59,9 @@ public class GatherTaskService {
 
 	@Autowired
 	private SaleSummaryRepo saleSummaryRepo;
+
+	@Autowired
+	private SplitDataRatioRepo splitDataRatioRepo;
 
 	@Autowired
 	private SaleItemRepository itemRepository;
@@ -266,10 +270,15 @@ public class GatherTaskService {
 			int updated = saleSummaryRepo.updateSalesSummaries(task.getDataAccount(), task.getCountryCodeToGatherFor(), task.getMainItemId(), itemTitle, date,
 					phoneRevenueRatio, tabletRevenueRatio, phoneIapRevenueRatio, tabletIapRevenueRatio,
 					phoneDownloads, tabletDownloads, totalDownloads);
-
 			if (updated > 0) {
 				updatedCount++;
 			}
+
+			splitDataRatioRepo.createOrUpdateSplitDataRatio(
+					task.getDataAccountId(), task.getMainItemId(), task.getCountryCodeToGatherFor(), date,
+					phoneRevenueRatio, tabletRevenueRatio,
+					phoneIapRevenueRatio, tabletIapRevenueRatio,
+					phoneDownloads, tabletDownloads, totalDownloads);
 		}
 
 		LOG.debug(

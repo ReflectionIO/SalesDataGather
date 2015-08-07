@@ -93,9 +93,7 @@ public class SplitDataFetchRepo {
 				+ " from_date=?, to_date=?, "
 				+ " country=?, itemid=?, "
 				+ " downloads_report_url=?, sales_report_url=?, iap_report_url=?, "
-				+ " status=?, "
-				+ " phone_revenue_ratio=?, tablet_revenue_ratio=?, phone_iap_revenue_ratio=?, tablet_iap_revenue_ratio=?, "
-				+ " phone_downloads=?, tablet_downloads=?, total_downloads=?"
+				+ " status=? "
 				+ " where split_data_fetch_id = ?";
 
 		jdbcTemplate.update(updateSql, new Object[] {
@@ -105,8 +103,6 @@ public class SplitDataFetchRepo {
 				splitDataFetch.getCountry(), splitDataFetch.getItemId(),
 				splitDataFetch.getDownloadsReportUrl(), splitDataFetch.getSalesReportUrl(), splitDataFetch.getIapReportUrl(),
 				splitDataFetch.getStatus(),
-				splitDataFetch.getPhoneRevenueRatio(), splitDataFetch.getTabletRevenueRatio(), splitDataFetch.getPhoneIapRevenueRatio(), splitDataFetch.getTabletIapRevenueRatio(),
-				splitDataFetch.getPhoneDownloads(), splitDataFetch.getTabletDownloads(), splitDataFetch.getTotalDownloads(),
 				splitDataFetch.getSplitDataFetchId(),
 		});
 	}

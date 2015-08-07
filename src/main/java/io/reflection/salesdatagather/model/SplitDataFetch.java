@@ -16,13 +16,6 @@ public class SplitDataFetch {
 	private String		salesReportUrl;
 	private String		iapReportUrl;
 	private String		status;
-	private Double		phoneRevenueRatio;
-	private Double		tabletRevenueRatio;
-	private Double		phoneIapRevenueRatio;
-	private Double		tabletIapRevenueRatio;
-	private Double		phoneDownloads;
-	private Double		tabletDownloads;
-	private Double		totalDownloads;
 
 	public Integer getSplitDataFetchId() {
 		return splitDataFetchId;
@@ -96,30 +89,6 @@ public class SplitDataFetch {
 		this.status = status;
 	}
 
-	public Double getPhoneDownloads() {
-		return phoneDownloads;
-	}
-
-	public void setPhoneDownloads(Double phoneDownloads) {
-		this.phoneDownloads = phoneDownloads;
-	}
-
-	public Double getTabletDownloads() {
-		return tabletDownloads;
-	}
-
-	public void setTabletDownloads(Double tabletDownloads) {
-		this.tabletDownloads = tabletDownloads;
-	}
-
-	public Double getTotalDownloads() {
-		return totalDownloads;
-	}
-
-	public void setTotalDownloads(Double totalDownloads) {
-		this.totalDownloads = totalDownloads;
-	}
-
 	public String getDownloadsReportUrl() {
 		return downloadsReportUrl;
 	}
@@ -142,37 +111,5 @@ public class SplitDataFetch {
 
 	public void setIapReportUrl(String iapReportUrl) {
 		this.iapReportUrl = iapReportUrl;
-	}
-
-	public Double getPhoneRevenueRatio() {
-		return phoneRevenueRatio;
-	}
-
-	public void setPhoneRevenueRatio(Double phoneRevenueRatio) {
-		this.phoneRevenueRatio = phoneRevenueRatio;
-	}
-
-	public Double getTabletRevenueRatio() {
-		return tabletRevenueRatio;
-	}
-
-	public void setTabletRevenueRatio(Double tabletRevenueRatio) {
-		this.tabletRevenueRatio = tabletRevenueRatio;
-	}
-
-	public Double getPhoneIapRevenueRatio() {
-		return phoneIapRevenueRatio;
-	}
-
-	public void setPhoneIapRevenueRatio(Double phoneIapRevenueRatio) {
-		this.phoneIapRevenueRatio = phoneIapRevenueRatio;
-	}
-
-	public Double getTabletIapRevenueRatio() {
-		return tabletIapRevenueRatio;
-	}
-
-	public void setTabletIapRevenueRatio(Double tabletIapRevenueRatio) {
-		this.tabletIapRevenueRatio = tabletIapRevenueRatio;
 	}
 }
