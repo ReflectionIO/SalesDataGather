@@ -15,6 +15,22 @@ public class SplitDataRatio {
 	private Integer	tabletDownloads;
 	private Integer	totalDownloads;
 
+	public SplitDataRatio(Integer dataAccountId, String itemId, String country, Date date,
+			Double phoneRevenueRatio, Double tabletRevenueRatio, Double phoneIapRevenueRatio,
+			Double tabletIapRevenueRatio, Integer phoneDownloads, Integer tabletDownloads, Integer totalDownloads) {
+		this.dataAccountId = dataAccountId;
+		this.itemId = itemId;
+		this.country = country;
+		this.date = date;
+		this.phoneRevenueRatio = phoneRevenueRatio;
+		this.tabletRevenueRatio = tabletRevenueRatio;
+		this.phoneIapRevenueRatio = phoneIapRevenueRatio;
+		this.tabletIapRevenueRatio = tabletIapRevenueRatio;
+		this.phoneDownloads = phoneDownloads;
+		this.tabletDownloads = tabletDownloads;
+		this.totalDownloads = totalDownloads;
+	}
+
 	public Integer getDataAccountId() {
 		return dataAccountId;
 	}
