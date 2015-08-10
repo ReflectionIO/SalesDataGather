@@ -43,7 +43,7 @@ public class SalesDataProcessor {
 	}
 
 	private HashMap<Date, CsvRevenueAndDownloadEntry> getMapOfDatesFromFirstAvailableFile(Path salesFile, Path downloadsFile, Path iapSalesFile) {
-		File fileToProcess = downloadsFile.toFile().exists() ? downloadsFile.toFile() : salesFile.toFile().exists() ? salesFile.toFile() : iapSalesFile.toFile().exists() ? iapSalesFile.toFile() : null;
+		File fileToProcess = getFirstExistingFile(downloadsFile, salesFile, iapSalesFile);
 		if (fileToProcess == null) return null;
 
 		HashMap<Date, CsvRevenueAndDownloadEntry> mapOfDatesFromFile = null;
@@ -59,6 +59,20 @@ public class SalesDataProcessor {
 		}
 
 		return mapOfDatesFromFile;
+	}
+
+	private File getFirstExistingFile(Path... paths) {
+		if (paths == null) return null;
+
+		for (Path path : paths) {
+			if (path == null) {
+				continue;
+			}
+
+			File file = path.toFile();
+			if (file.exists()) return file;
+		}
+		return null;
 	}
 
 	private HashMap<Date, CsvRevenueAndDownloadEntry> getMapOfDatesFromFile(File fileToProcess) {
