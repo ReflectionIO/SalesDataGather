@@ -267,18 +267,26 @@ public class GatherTaskService {
 			int tabletDownloads = entry.getDownloadValue(ITunesPlatform.IPAD);
 			int totalDownloads = phoneDownloads + tabletDownloads;
 
-			int updated = saleSummaryRepo.updateSalesSummaries(task.getDataAccount(), task.getCountryCodeToGatherFor(), task.getMainItemId(), itemTitle, date,
-					phoneRevenueRatio, tabletRevenueRatio, phoneIapRevenueRatio, tabletIapRevenueRatio,
-					phoneDownloads, tabletDownloads, totalDownloads);
-			if (updated > 0) {
-				updatedCount++;
+			try {
+				int updated = saleSummaryRepo.updateSalesSummaries(task.getDataAccount(), task.getCountryCodeToGatherFor(), task.getMainItemId(), itemTitle, date,
+						phoneRevenueRatio, tabletRevenueRatio, phoneIapRevenueRatio, tabletIapRevenueRatio,
+						phoneDownloads, tabletDownloads, totalDownloads);
+				if (updated > 0) {
+					updatedCount++;
+				}
+			} catch (Exception e) {
+				LOG.error(String.format("Exception occured when trying to update sale summary. Account ID: %s, ItemId: %s, Date: %s", task.getDataAccountId(), task.getMainItemId(), date), e);
 			}
 
-			splitDataRatioRepo.createOrUpdateSplitDataRatio(
-					task.getDataAccountId(), task.getMainItemId(), task.getCountryCodeToGatherFor(), date,
-					phoneRevenueRatio, tabletRevenueRatio,
-					phoneIapRevenueRatio, tabletIapRevenueRatio,
-					phoneDownloads, tabletDownloads, totalDownloads);
+			try {
+				splitDataRatioRepo.createOrUpdateSplitDataRatio(
+						task.getDataAccountId(), task.getMainItemId(), task.getCountryCodeToGatherFor(), date,
+						phoneRevenueRatio, tabletRevenueRatio,
+						phoneIapRevenueRatio, tabletIapRevenueRatio,
+						phoneDownloads, tabletDownloads, totalDownloads);
+			} catch (Exception e) {
+				LOG.error(String.format("Exception occured when trying to insert/update split data ratio. Account ID: %s, ItemId: %s, Date: %s", task.getDataAccountId(), task.getMainItemId(), date), e);
+			}
 		}
 
 		LOG.debug(
