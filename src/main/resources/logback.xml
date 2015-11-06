@@ -1,0 +1,11 @@
+<configuration>
+	<!-- For the production environment, just put -Dprod=true as an argument to the jvm -->
+	<if condition='property("spring.profiles.active").contains("prod")'>
+		<then>
+			<include resource="prod.logback.xml" />
+		</then>
+		<else>
+			<include resource="dev.logback.xml" />
+		</else>
+	</if>
+</configuration>
