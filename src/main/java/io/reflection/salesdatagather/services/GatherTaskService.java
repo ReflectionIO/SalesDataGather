@@ -89,11 +89,13 @@ public class GatherTaskService {
 	}
 
 	public void scheduleTaskForExecution(GatherTask task) {
+		LOG.debug(String.format("Schedulling task: %s", task.getLeasedTask().getGoogleLeasedTask().getId()));
 		taskExecutorService.execute(task);
 	}
 
 	public void executeGather(GatherTask task) {
 		if (!appConfig.getActiveCountryCodes().contains(task.getCountryCodeToGatherFor())) {
+			LOG.debug(String.format("Ignoring task %s as it's country %s is not in our list of countries to process.", task.getLeasedTask().getGoogleLeasedTask().getId(), task.getCountryCodeToGatherFor()));
 			taskService.deleteTask(task.getLeasedTask());
 			return;
 		}
@@ -108,11 +110,6 @@ public class GatherTaskService {
 					task.getDateToGatherFrom(),
 					task.getDateToGatherTo(),
 					task.getCountryCodeToGatherFor());
-		} else if (splitDataFetch.getStatus().equalsIgnoreCase(SplitDataFetchStatus.INGESTED.toString())) {
-			// if already ingested don't bother doing this again and delete the task
-			// from the list
-			taskService.deleteTask(task.getLeasedTask());
-			return;
 		}
 
 		Path downloadDir = null;
@@ -131,7 +128,7 @@ public class GatherTaskService {
 		Path salesFilePath = null;
 		Path iapSalesFilePath = null;
 
-		if (splitDataFetch.getStatus().equalsIgnoreCase(SplitDataFetchStatus.GATHERED.toString())) {
+		if (splitDataFetch.getStatus().equalsIgnoreCase(SplitDataFetchStatus.GATHERED.toString()) || splitDataFetch.getStatus().equalsIgnoreCase(SplitDataFetchStatus.INGESTED.toString())) {
 			downloadsUrl = splitDataFetch.getDownloadsReportUrl();
 			salesUrl = splitDataFetch.getSalesReportUrl();
 			iapSalesUrl = splitDataFetch.getIapReportUrl();
@@ -181,8 +178,10 @@ public class GatherTaskService {
 				processSalesAndDownloadData(task, salesAndDownloadsMap);
 			}
 
-			splitDataFetch.setStatus(SplitDataFetchStatus.INGESTED.toString());
-			splitDataFetchRepo.updateSplitDataFetch(splitDataFetch);
+			if (!splitDataFetch.getStatus().equalsIgnoreCase(SplitDataFetchStatus.INGESTED.toString())) {
+				splitDataFetch.setStatus(SplitDataFetchStatus.INGESTED.toString());
+				splitDataFetchRepo.updateSplitDataFetch(splitDataFetch);
+			}
 		}
 
 		taskService.deleteTask(task.getLeasedTask());
@@ -251,11 +250,11 @@ public class GatherTaskService {
 
 			int phoneRevenue = entry.getRevenueValue(ITunesPlatform.IPHONE) + entry.getRevenueValue(ITunesPlatform.IPOD);
 			int tabletRevenue = entry.getRevenueValue(ITunesPlatform.IPAD);
-			int totalRevenue = phoneRevenue + tabletRevenue;
+			int totalRevenue = phoneRevenue + tabletRevenue + entry.getRevenueValue(ITunesPlatform.DESKTOP);
 
 			int phoneIapRevenue = entry.getIapRevenueValue(ITunesPlatform.IPHONE) + entry.getIapRevenueValue(ITunesPlatform.IPOD);
 			int tabletIapRevenue = entry.getIapRevenueValue(ITunesPlatform.IPAD);
-			int totalIapRevenue = phoneIapRevenue + tabletIapRevenue;
+			int totalIapRevenue = phoneIapRevenue + tabletIapRevenue + entry.getIapRevenueValue(ITunesPlatform.DESKTOP);
 
 			double phoneRevenueRatio = (phoneRevenue == 0 || totalRevenue == 0) ? 0 : (double) phoneRevenue / (double) totalRevenue;
 			double tabletRevenueRatio = (tabletRevenue == 0 || totalRevenue == 0) ? 0 : (double) tabletRevenue / (double) totalRevenue;

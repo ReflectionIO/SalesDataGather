@@ -3,6 +3,7 @@ package io.reflection.salesdatagather.selenium;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.slf4j.Logger;
@@ -23,6 +24,7 @@ public class ITunesConnectDownloader {
 
 	public void downloadFromITunes(Path downloadDir, String username, String password, String mainItemId, String IAPIds, String countryCodeToGatherFor, Date dateToGatherFrom, Date dateToGatherTo) {
 		FirefoxDriver driver = new SeleniumDriver(downloadDir).getDriver();
+		driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
 		try {
 			downloadFromITunes(driver, downloadDir, username, password, mainItemId, IAPIds, countryCodeToGatherFor, dateToGatherFrom, dateToGatherTo);
 		} catch (Exception e) {
@@ -80,50 +82,30 @@ public class ITunesConnectDownloader {
 		/*
 		 * ********* SALES FOR THE IAPS ONLY ********************
 		 */
+		LOG.info("Attempting to download IAP sales report.");
 		SeleniumHelper.loadUrl(driver, url);
 
+		if (SeleniumHelper.doesElementWithClassExistAndIsDisplayed(driver, "no-data-message")) {
+			LOG.debug("There is no IAP sales data to report. Returning null.");
+			return null;
+		}
+
 		// ---- WAIT FOR THE TIMEZONE TO BE CLICKABLE AND THEN CHANGE IT TO LOCAL
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Clicking timezone icon when ready");
-		}
-		SeleniumHelper.clickElementByClassNameWhenReady(driver, ITunesHelper.TIMEZONE_TOGGLE_LINK);
-
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Timezone icon clicked. Waiting for local to be clickable and clicking");
-		}
-
-		SeleniumHelper.clickElementByClassNameWhenReady(driver, ITunesHelper.LOCAL_TIMEZONE_LINK);
-
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Waiting to click on sales");
-		}
-
 		try {
-			SeleniumHelper.clickElementByClassNameWhenReady(driver, ITunesHelper.SALES_LINK);
+			SeleniumHelper.clickElementByClassNameWhenReady(driver, ITunesHelper.TIMEZONE_TOGGLE_LINK);
+			SeleniumHelper.clickElementByClassNameWhenReady(driver, ITunesHelper.LOCAL_TIMEZONE_LINK);
 		} catch (Exception e) {
-			LOG.error("An error occured while trying to download the iaps sales file. Aborting during wait for sales link");
+			LOG.error("Could not change timezone to local to download the iaps sales file. Aborting!");
 			return null;
 		}
 
 		// ---- WAIT FOR DOWNLOAD TO BE CLICKABLE AND THEN DOWNLOAD
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Waiting to click the share icon");
-		}
-
 		try {
+			SeleniumHelper.clickElementByClassNameWhenReady(driver, ITunesHelper.SALES_LINK);
 			SeleniumHelper.clickElementByClassNameWhenReady(driver, ITunesHelper.SHARE_LINK);
-		} catch (Exception e) {
-			LOG.error("An error occured while trying to download the iaps sales file. Aborting during wait for share link");
-			return null;
-		}
-
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Downloading the sales report");
-		}
-		try {
 			SeleniumHelper.clickElementByClassNameWhenReady(driver, ITunesHelper.DOWNLOAD_LINK);
 		} catch (Exception e) {
-			LOG.error("An error occured while trying to download the iaps sales file. Aborting during wait for download link");
+			LOG.error("An error occured while trying to download the iaps sales file. Aborting!");
 			return null;
 		}
 
@@ -135,6 +117,7 @@ public class ITunesConnectDownloader {
 		}
 
 		File iapSaleFile = renameDownloadedFile(downloadDir, IAP_SALES_FILE_NAME, downloadFile == null ? null : downloadFile.toPath(), salesFile == null ? null : salesFile.toPath());
+		LOG.info("Got the IAP sales report");
 		return iapSaleFile;
 	}
 
@@ -145,35 +128,29 @@ public class ITunesConnectDownloader {
 	 * @return
 	 */
 	private File getMainItemSalesReport(FirefoxDriver driver, Path downloadDir, File downloadFile) {
+		LOG.info("Attempting to download main item sales report.");
+
 		/*
 		 * ********* SALES FOR THE MAIN ITEM ONLY ********************
 		 */
 		try {
 			SeleniumHelper.clickElementByClassNameWhenReady(driver, ITunesHelper.SALES_LINK);
 		} catch (Exception e) {
-			LOG.error("An error occured while trying to download the sales file. Aborting during wait for sales link");
+			LOG.error("An error occured while trying to download the sales file. Aborting!");
+			return null;
+		}
+
+		if (SeleniumHelper.doesElementWithClassExistAndIsDisplayed(driver, "no-data-message")) {
+			LOG.debug("There is no data to report. Returning null.");
 			return null;
 		}
 
 		// ---- WAIT FOR DOWNLOAD TO BE CLICKABLE AND THEN DOWNLOAD
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Waiting to click the share icon");
-		}
-
 		try {
 			SeleniumHelper.clickElementByClassNameWhenReady(driver, ITunesHelper.SHARE_LINK);
-		} catch (Exception e) {
-			LOG.error("An error occured while trying to download the sales file. Aborting during wait for share link");
-			return null;
-		}
-
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Downloading the sales report");
-		}
-		try {
 			SeleniumHelper.clickElementByClassNameWhenReady(driver, ITunesHelper.DOWNLOAD_LINK);
 		} catch (Exception e) {
-			LOG.error("An error occured while trying to download the sales file. Aborting during wait for download link");
+			LOG.error("An error occured while trying to download the sales file. Aborting!");
 			return null;
 		}
 
@@ -184,6 +161,7 @@ public class ITunesConnectDownloader {
 			e.printStackTrace();
 		}
 		File salesFile = renameDownloadedFile(downloadDir, SALES_FILE_NAME, downloadFile == null ? null : downloadFile.toPath());
+		LOG.info("Got the main item sales report");
 		return salesFile;
 	}
 
@@ -194,43 +172,31 @@ public class ITunesConnectDownloader {
 	 * @return
 	 */
 	private File getDownloadsReport(FirefoxDriver driver, Path downloadDir, String url) {
+		LOG.info("Attempting to download main item downloads report.");
+
 		SeleniumHelper.loadUrl(driver, url);
 
-		// ---- WAIT FOR THE TIMEZONE TO BE CLICKABLE AND THEN CHANGE IT TO LOCAL
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Clicking timezone icon when ready");
-		}
-		SeleniumHelper.clickElementByClassNameWhenReady(driver, ITunesHelper.TIMEZONE_TOGGLE_LINK);
-
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Timezone icon clicked. Waiting for local to be clickable and clicking");
-		}
-
-		SeleniumHelper.clickElementByClassNameWhenReady(driver, ITunesHelper.LOCAL_TIMEZONE_LINK);
-
-		// ---- WAIT FOR DOWNLOAD TO BE CLICKABLE AND THEN DOWNLOAD
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Waiting to click the share icon");
-		}
-
-		try {
-			SeleniumHelper.clickElementByClassNameWhenReady(driver, ITunesHelper.SHARE_LINK);
-		} catch (Exception e) {
-			LOG.error("An error occured while trying to download the downloads file. Aborting during wait for share link");
+		if (SeleniumHelper.doesElementWithClassExistAndIsDisplayed(driver, "no-data-message")) {
+			LOG.debug("There is no data to report. Returning null.");
 			return null;
 		}
 
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Share icon clicked. Waiting for the download-csv to be clickable");
+		// ---- WAIT FOR THE TIMEZONE TO BE CLICKABLE AND THEN CHANGE IT TO LOCAL
+		// ---- WAIT FOR THE TIMEZONE TO BE CLICKABLE AND THEN CHANGE IT TO LOCAL
+		try {
+			SeleniumHelper.clickElementByClassNameWhenReady(driver, ITunesHelper.TIMEZONE_TOGGLE_LINK);
+			SeleniumHelper.clickElementByClassNameWhenReady(driver, ITunesHelper.LOCAL_TIMEZONE_LINK);
+		} catch (Exception e) {
+			LOG.error("Could not change timezone to local for the downloads report. Aborting!");
+			return null;
 		}
 
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Downloading the downloads report");
-		}
+		// ---- WAIT FOR DOWNLOAD TO BE CLICKABLE AND THEN DOWNLOAD
 		try {
+			SeleniumHelper.clickElementByClassNameWhenReady(driver, ITunesHelper.SHARE_LINK);
 			SeleniumHelper.clickElementByClassNameWhenReady(driver, ITunesHelper.DOWNLOAD_LINK);
 		} catch (Exception e) {
-			LOG.error("An error occured while trying to download the downloads file. Aborting during wait for download link");
+			LOG.error("An error occured while trying to download the downloads report. Aborting!");
 			return null;
 		}
 
@@ -241,6 +207,7 @@ public class ITunesConnectDownloader {
 			e.printStackTrace();
 		}
 		File downloadFile = renameDownloadedFile(downloadDir, DOWNLOADS_FILE_NAME);
+		LOG.info("Got the downloads report");
 		return downloadFile;
 	}
 

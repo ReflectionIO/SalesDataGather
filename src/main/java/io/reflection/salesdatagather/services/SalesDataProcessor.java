@@ -16,15 +16,20 @@ import java.util.List;
 import org.apache.commons.io.input.BOMInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import au.com.bytecode.opencsv.CSVReader;
+import io.reflection.salesdatagather.AppConfig;
 import io.reflection.salesdatagather.model.enums.ITunesPlatform;
 import io.reflection.salesdatagather.model.nondb.CsvRevenueAndDownloadEntry;
 
 @Service
 public class SalesDataProcessor {
 	private transient static final Logger LOG = LoggerFactory.getLogger(SalesDataProcessor.class.getName());
+
+	@Autowired
+	private AppConfig appConfig;
 
 	public HashMap<Date, CsvRevenueAndDownloadEntry> convertSalesAndDownloadsCSV(Path salesFile, Path downloadsFile, Path iapSalesFile) {
 
@@ -75,7 +80,7 @@ public class SalesDataProcessor {
 		return null;
 	}
 
-	private HashMap<Date, CsvRevenueAndDownloadEntry> getMapOfDatesFromFile(File fileToProcess) {
+	public HashMap<Date, CsvRevenueAndDownloadEntry> getMapOfDatesFromFile(File fileToProcess) {
 		if (fileToProcess == null || fileToProcess.length() == 0) return null;
 
 		try (CSVReader csvReader = new CSVReader(new InputStreamReader(new BOMInputStream(new FileInputStream(fileToProcess), false)))) {
@@ -85,8 +90,8 @@ public class SalesDataProcessor {
 
 			List<String> dateRow = Arrays.asList(rows.get(0));
 
-			// we expect the sales file to have platform in cell 0,0 and Measure in the second column of the first row 1,2.
-			if (!"Platform".equals(dateRow.get(0)) || !"Measure".equals(dateRow.get(1))) throw new RuntimeException("File does not start with the data we expected.");
+			if (!appConfig.getSalesFileFirstColumnName().endsWith(dateRow.get(0)) || !appConfig.getSalesFileSecondColumnName().equals(dateRow.get(1)))
+				throw new RuntimeException("File does not start with the data we expected.");
 
 			HashMap<Date, CsvRevenueAndDownloadEntry> map = new HashMap<Date, CsvRevenueAndDownloadEntry>(31);
 			SimpleDateFormat sdf = new SimpleDateFormat("MMM d, yyyy");
@@ -130,8 +135,8 @@ public class SalesDataProcessor {
 
 			List<String> dateRow = Arrays.asList(rows.get(0));
 
-			// we expect the sales file to have platform in cell 0,0 and Measure in the second column of the first row 1,2.
-			if (!"Platform".equals(dateRow.get(0)) || !"Measure".equals(dateRow.get(1))) throw new RuntimeException("File does not start with the data we expected.");
+			if (!appConfig.getSalesFileFirstColumnName().endsWith(dateRow.get(0)) || !appConfig.getSalesFileSecondColumnName().equals(dateRow.get(1)))
+				throw new RuntimeException("File does not start with the data we expected.");
 
 			// we loop through from the third column to the second last (the last one has the total values)
 			Date date = null;
@@ -204,8 +209,8 @@ public class SalesDataProcessor {
 
 			List<String> dateRow = Arrays.asList(rows.get(0));
 
-			// we expect the sales file to have platform in cell 0,0 and Measure in the second column of the first row 1,2.
-			if (!"Platform".equals(dateRow.get(0)) || !"Measure".equals(dateRow.get(1))) throw new RuntimeException("File does not start with the data we expected.");
+			if (!appConfig.getSalesFileFirstColumnName().endsWith(dateRow.get(0)) || !appConfig.getSalesFileSecondColumnName().equals(dateRow.get(1)))
+				throw new RuntimeException("File does not start with the data we expected.");
 
 			// we loop through from the third column to the second last (the last one has the total values)
 			Date date = null;
@@ -271,8 +276,8 @@ public class SalesDataProcessor {
 
 			List<String> dateRow = Arrays.asList(rows.get(0));
 
-			// we expect the sales file to have platform in cell 0,0 and Measure in the second column of the first row 1,2.
-			if (!"Platform".equals(dateRow.get(0)) || !"Measure".equals(dateRow.get(1))) throw new RuntimeException("File does not start with the data we expected.");
+			if (!appConfig.getSalesFileFirstColumnName().endsWith(dateRow.get(0)) || !appConfig.getSalesFileSecondColumnName().equals(dateRow.get(1)))
+				throw new RuntimeException("File does not start with the data we expected.");
 
 			// we loop through from the third column to the second last (the last one has the total values)
 			Date date = null;

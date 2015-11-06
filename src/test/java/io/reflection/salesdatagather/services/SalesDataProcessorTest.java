@@ -1,5 +1,6 @@
 package io.reflection.salesdatagather.services;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -8,6 +9,7 @@ import java.util.Date;
 import java.util.HashMap;
 
 import org.apache.commons.collections.ComparatorUtils;
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -26,6 +28,9 @@ public class SalesDataProcessorTest extends BaseSpringTestClass {
 	@Autowired
 	private SaleSummaryRepo saleSummaryRepo;
 
+	@Autowired
+	private SalesDataProcessor processor;
+
 	// to enable this test, the sample test directory needs to be present.
 	// We need to get a sample file and move it into the test resources
 	// dir
@@ -37,7 +42,6 @@ public class SalesDataProcessorTest extends BaseSpringTestClass {
 		Path salesFile = downloadDir.resolve("sales.csv");
 		Path iapSalesFile = downloadDir.resolve("iap_sales.csv");
 
-		SalesDataProcessor processor = new SalesDataProcessor();
 		HashMap<Date, CsvRevenueAndDownloadEntry> salesAndDownloadsMap = processor.convertSalesAndDownloadsCSV(salesFile, downloadsFile, iapSalesFile);
 
 		ArrayList<Date> dateList = new ArrayList<Date>(salesAndDownloadsMap.keySet());
@@ -59,5 +63,13 @@ public class SalesDataProcessorTest extends BaseSpringTestClass {
 			// saleSummaryRepo.updateSalesSummaries(account, "gb", "461402734",
 			// "Diamond Dash", salesAndDownloadsMap);
 		}
+	}
+
+	@Test
+	public void getMapOfDatesFromFileTest() {
+		File testFile = new File("./src/test/resources/downloads.csv");
+
+		HashMap<Date, CsvRevenueAndDownloadEntry> map = processor.getMapOfDatesFromFile(testFile);
+		Assert.assertNotNull(map);
 	}
 }

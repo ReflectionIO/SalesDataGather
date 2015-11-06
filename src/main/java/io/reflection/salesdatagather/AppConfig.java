@@ -69,6 +69,12 @@ public class AppConfig {
 	@Value("${activeCountryCodes}")
 	private String activeCountryCodes;
 
+	@Value("${salesfile.columnname.first}")
+	private String salesFileFirstColumnName;
+
+	@Value("${salesfile.columnname.second}")
+	private String salesFileSecondColumnName;
+
 	public String getVersion() {
 		return version;
 	}
@@ -154,6 +160,14 @@ public class AppConfig {
 		return taskBatchSize;
 	}
 
+	public String getSalesFileFirstColumnName() {
+		return salesFileFirstColumnName;
+	}
+
+	public String getSalesFileSecondColumnName() {
+		return salesFileSecondColumnName;
+	}
+
 	public void logConfig() {
 		LOG.info(String.format("\n"
 				+ "============================================\n"
@@ -181,12 +195,16 @@ public class AppConfig {
 				+ "\tExecutor Max Pool Size:\t\t%s\n"
 				+ "\n"
 				+ "\tActive Country Codes:\t\t%s\n"
+				+ "\n"
+				+ "\tSalesfile First Column:\t\t%s\n"
+				+ "\tSalesfile Second Column:\t%s\n"
 				+ "============================================\n",
 				version, profile, buildTimestamp,
 				googleProjectName, googleAuthCertPath, googleAuthEmail,
 				taskBatchSize, tasksQueueName, taskLeaseTimeSeconds,
 				tempDownloadDirectory, tempDownloadPrefix,
 				googleStorageFilePrefix, googleStorageBucketName,
-				executorQueueCapacity, executorCorePoolSize, executorMaxPoolSize, activeCountryCodes));
+				executorQueueCapacity, executorCorePoolSize, executorMaxPoolSize, activeCountryCodes,
+				salesFileFirstColumnName, salesFileSecondColumnName));
 	}
 }
